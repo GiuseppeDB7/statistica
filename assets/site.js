@@ -95,10 +95,10 @@ function decrypt(el) {
   let step = 0;
   const timer = setInterval(() => {
     el.textContent = [...final].map((c, i) =>
-      i < step / 3 || c === " " ? c : GLYPHS[(Math.random() * GLYPHS.length) | 0]
+      i < step / 1.5 || c === " " ? c : GLYPHS[(Math.random() * GLYPHS.length) | 0]
     ).join("");
-    if (++step > final.length * 3) { clearInterval(timer); el.textContent = final; }
-  }, 45);
+    if (++step > final.length * 1.5) { clearInterval(timer); el.textContent = final; }
+  }, 30);
 }
 
 /* ---------- Testo digitato carattere per carattere ---------- */
