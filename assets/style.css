@@ -206,3 +206,9 @@ a.hw-link:hover .hw-arrow { transform: translateX(4px); color: var(--accent); }
   .brand .cursor { animation: none; }
   html { scroll-behavior: auto; }
 }
+
+/* ---------- Nome e matricola ben visibili ---------- */
+.meta li.student { color: var(--text); border-color: var(--accent-dim); }
+.meta li.student strong { color: var(--accent); font-weight: 500; }
+.student-line { font-size: 14px; color: var(--text); margin: 0 0 6px; }
+.student-line strong { color: var(--accent); font-weight: 500; }
