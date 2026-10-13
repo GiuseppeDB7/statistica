@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#050805">
+  <title>Homework 1 · Statistica</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;600&family=JetBrains+Mono:wght@400;500&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+  <!-- Formule LaTeX: $...$ in linea, $$...$$ a blocco -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"
+    onload="renderMathInElement(document.body,{delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}]})"></script>
+  <!-- Evidenziazione del codice -->
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js" onload="hljs.highlightAll()"></script>
+  <link rel="stylesheet" href="../../assets/style.css">
+  <script src="../../assets/site.js"></script>
+</head>
+<body>
+  <header class="site-header">
+    <div class="wrap">
+      <a class="brand" href="../../">statistica<span class="cursor">_</span></a>
+      <nav class="nav">
+        <a class="active" href="../../#homework">homework</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <header class="hw-header">
+      <div class="breadcrumb"><a href="../../#homework">cd ../ — tutti gli homework</a></div>
+      <p class="eyebrow">Homework 01 · 20 ottobre 2026</p>
+      <h1>Titolo dell'homework</h1>
+      <p class="lead">Una o due frasi che riassumono l'obiettivo dell'homework e il dataset usato.</p>
+      <div class="hw-meta">
+        <a href="consegna.pdf">Testo della consegna (PDF)</a>
+        <a href="soluzione.pdf">Soluzione (PDF)</a>
+        <a href="codice.R">Codice sorgente</a>
+      </div>
+    </header>
+
+    <div class="layout">
+      <article class="prose">
+        <h2 id="consegna">Consegna</h2>
+        <blockquote>
+          <p>Riporta qui il testo dell'esercizio, così com'è stato assegnato.</p>
+        </blockquote>
+
+        <h2 id="dati">Dati</h2>
+        <p>Descrivi il dataset: origine, numero di osservazioni, variabili principali.</p>
+        <table>
+          <thead><tr><th>Variabile</th><th>Tipo</th><th>Descrizione</th></tr></thead>
+          <tbody>
+            <tr><td><code>eta</code></td><td>numerica</td><td>Età in anni</td></tr>
+            <tr><td><code>sesso</code></td><td>categoriale</td><td>M / F</td></tr>
+          </tbody>
+        </table>
+
+        <h2 id="svolgimento">Svolgimento</h2>
+        <p>
+          Le formule si scrivono in LaTeX. In linea: la media campionaria è
+          $\bar{x} = \frac{1}{n}\sum_{i=1}^{n} x_i$. A blocco:
+        </p>
+        <p>$$ s^2 = \frac{1}{n-1}\sum_{i=1}^{n}\left(x_i - \bar{x}\right)^2 $$</p>
+
+        <h3>Codice</h3>
+<pre><code class="language-r">dati &lt;- read.csv("dati.csv")
+summary(dati$eta)
+hist(dati$eta, breaks = 20, col = "#00ff41", main = "Distribuzione dell'età")</code></pre>
+
+        <figure>
+          <img src="../../assets/grafico-esempio.svg" alt="Esempio di grafico">
+          <figcaption>Figura 1 — Sostituisci con il tuo grafico (es. <code>figura1.png</code> in questa cartella).</figcaption>
+        </figure>
+
+        <h2 id="conclusioni">Conclusioni</h2>
+        <div class="callout">
+          <strong>Risultato.</strong> Riassumi qui la risposta finale alla domanda dell'homework.
+        </div>
+      </article>
+
+      <aside class="toc">
+        <p>In questa pagina</p>
+        <ol>
+          <li><a href="#consegna">Consegna</a></li>
+          <li><a href="#dati">Dati</a></li>
+          <li><a href="#svolgimento">Svolgimento</a></li>
+          <li><a href="#conclusioni">Conclusioni</a></li>
+        </ol>
+      </aside>
+    </div>
+
+    <nav class="pager" id="pager" data-id="hw1"></nav>
+  </main>
+
+  <footer class="site-footer">
+    <div class="wrap">
+      <span>© <span id="year"></span> Giuseppe Di Biase</span>
+      <a href="../../">cd ~</a>
+    </div>
+  </footer>
+</body>
+</html>
