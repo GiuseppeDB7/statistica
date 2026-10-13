@@ -58,7 +58,7 @@ img { max-width: 100%; height: auto; display: block; }
 /* ---------- Hero con pioggia Matrix ---------- */
 .hero {
   position: relative; overflow: hidden;
-  min-height: min(72vh, 620px);
+  min-height: min(48vh, 420px);
   display: flex; align-items: center;
   border-bottom: 1px solid var(--border);
 }
@@ -195,7 +195,7 @@ a.hw-link:hover .hw-arrow { transform: translateX(4px); color: var(--accent); }
 @media (max-width: 560px) {
   .wrap { padding: 0 16px; }
   .nav .hide-sm { display: none; }
-  .hero { min-height: 520px; }
+  .hero { min-height: 380px; }
   .hw-link { grid-template-columns: 40px 1fr; gap: 12px; }
   .hw-side { grid-column: 2; text-align: left; }
   .hw-arrow { display: none; }
