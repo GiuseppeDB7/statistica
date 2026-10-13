@@ -34,5 +34,5 @@ npx http-server . -p 8080
 ## Publish on GitHub Pages
 
 1. Create a public repository named `statistica` on GitHub and push this folder to `main`.
-2. Repository Settings > Pages > Source: "Deploy from a branch", branch `main`, folder `/ (root)`.
+2. Repository Settings > Pages > Source: "GitHub Actions". The workflow in `.github/workflows/deploy.yml` publishes the site on every push to `main` (it can also be started by hand from the Actions tab).
 3. The site goes live at `https://giuseppedb7.github.io/statistica/`.
