@@ -1,38 +1,45 @@
 # Statistica · Homework
 
-Static site for the Statistics course homework, published with GitHub Pages.
-No build step: plain HTML, CSS and a little JavaScript.
+Questa repository è la raccolta degli homework per il corso di **Statistica**, anno accademico **2026/2027**.
 
-## Structure
+- **Studente:** Giuseppe Di Biase · Matricola 2334106
+- **Corso di laurea:** LM-66 Cybersecurity
+- **Sito:** https://giuseppedb7.github.io/statistica/
+
+Il sito è statico e pubblicato con GitHub Pages: solo HTML, CSS e un po' di JavaScript, senza passaggi di build.
+
+## Struttura
 
 ```
-index.html            home page (Matrix rain header + homework list)
-assets/style.css      colors, fonts, layout (green-on-black theme)
-assets/site.js        homework list (HOMEWORK array), Matrix rain, text effects
-assets/grafico-esempio.svg  placeholder chart used in the homework template
-homework/hw1/         one folder per homework; index.html is the page
+index.html                  home page (intestazione con pioggia Matrix + elenco homework)
+assets/style.css            colori, font e impaginazione (tema verde su nero)
+assets/site.js              elenco homework (array HOMEWORK), pioggia Matrix, effetti di testo
+assets/grafico-esempio.svg  grafico segnaposto usato nel modello di pagina homework
+homework/hw1/               una cartella per ogni homework; index.html è la pagina
 ```
 
-## Add a new homework
+## Aggiungere un homework
 
-1. Copy `homework/hw1` to `homework/hw2`.
-2. Edit `homework/hw2/index.html`: title, date, text, and set `data-id="hw2"` on the `#pager` element.
-3. Put PDFs, images and code for that homework in the same folder.
-4. In `assets/site.js`, add (or update) the entry in `HOMEWORK` with `status: "pubblicato"`.
+1. Copia `homework/hw1` in `homework/hw2`.
+2. Modifica `homework/hw2/index.html`: titolo, data, testo, e imposta `data-id="hw2"` sull'elemento `#pager`.
+3. Metti nella stessa cartella PDF, immagini e codice di quell'homework.
+4. In `assets/site.js` aggiungi (o aggiorna) la voce in `HOMEWORK` con `status: "pubblicato"`.
 
-## Formulas and code
+## Formule e codice
 
-- LaTeX via KaTeX: `$...$` inline, `$$...$$` display.
-- Code: `<pre><code class="language-r">...</code></pre>` (or `language-python`).
+- Formule LaTeX con KaTeX: `$...$` in linea, `$$...$$` a blocco.
+- Codice: `<pre><code class="language-r">...</code></pre>` (oppure `language-python`).
 
-## Preview locally
+## Anteprima in locale
 
 ```
 npx http-server . -p 8080
 ```
 
-## Publish on GitHub Pages
+Poi apri http://localhost:8080 nel browser.
 
-1. Create a public repository named `statistica` on GitHub and push this folder to `main`.
-2. Repository Settings > Pages > Source: "GitHub Actions". The workflow in `.github/workflows/deploy.yml` publishes the site on every push to `main` (it can also be started by hand from the Actions tab).
-3. The site goes live at `https://giuseppedb7.github.io/statistica/`.
+## Pubblicazione
+
+Il workflow `.github/workflows/deploy.yml` pubblica il sito su GitHub Pages a ogni push su `main`.
+Si può avviare anche a mano dalla scheda Actions (**Deploy site** → **Run workflow**).
+Nelle impostazioni del repository, Settings → Pages → Source deve essere **GitHub Actions**.
