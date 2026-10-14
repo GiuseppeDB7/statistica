@@ -7,19 +7,19 @@
 const HOMEWORK = [
   {
     id: "hw1",
-    title: "Homework 1",
-    summary: "Breve descrizione del primo homework: dataset, obiettivo, metodi usati.",
-    date: "2026-10-20",
-    tags: ["descrittiva"],
+    title: "Homework 1 · Chiave privata → chiave pubblica",
+    summary: "Moltiplicazione scalare su curva ellittica (secp256k1): curva giocattolo animata ed esplorazione statistica su tre scale.",
+    date: "2026-10-14",
+    tags: ["curve ellittiche", "uniformità", "avalanche"],
     status: "pubblicato",
   },
   {
     id: "hw2",
-    title: "Homework 2",
-    summary: "Da definire.",
-    date: "",
-    tags: [],
-    status: "in-arrivo",
+    title: "Homework 2 · Dal seed all'indirizzo Ethereum",
+    summary: "BIP-39, BIP-32/44, secp256k1, Keccak-256 ed EIP-55 implementati anello per anello, con le proprietà statistiche di ogni passaggio.",
+    date: "2026-10-14",
+    tags: ["BIP-39/32/44", "Keccak-256", "EIP-55"],
+    status: "pubblicato",
   },
 ];
 

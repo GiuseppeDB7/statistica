@@ -16,9 +16,10 @@
   <!-- Evidenziazione del codice -->
   <script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js" onload="hljs.highlightAll()"></script>
   <link rel="stylesheet" href="../../assets/style.css">
+  <link rel="stylesheet" href="hw1.css">
   <script src="../../assets/site.js"></script>
 </head>
-<body>
+<body class="hw-wide">
   <header class="site-header">
     <div class="wrap">
       <a class="brand" href="../../">statistica<span class="cursor">_</span></a>
@@ -31,64 +32,285 @@
   <main class="wrap">
     <header class="hw-header">
       <div class="breadcrumb"><a href="../../#homework">cd ../ — tutti gli homework</a></div>
-      <p class="eyebrow">Homework 01 · 20 ottobre 2026</p>
+      <p class="eyebrow">Homework 01 · 14 ottobre 2026</p>
       <p class="student-line">Giuseppe Di Biase · Matricola <strong>2334106</strong> · LM-66 Cybersecurity</p>
-      <h1>Titolo dell'homework</h1>
-      <p class="lead">Una o due frasi che riassumono l'obiettivo dell'homework e il dataset usato.</p>
+      <h1>Dalla chiave privata alla chiave pubblica</h1>
+      <p class="lead">
+        Moltiplicazione scalare su curva ellittica (secp256k1, la curva di Ethereum): implementazione su una
+        curva giocattolo, visualizzazione passo-passo ed esplorazione statistica su tre scale.
+      </p>
       <div class="hw-meta">
-        <a href="consegna.pdf">Testo della consegna (PDF)</a>
-        <a href="soluzione.pdf">Soluzione (PDF)</a>
-        <a href="codice.R">Codice sorgente</a>
+        <a href="ec.js">ec.js · aritmetica sulla curva</a>
+        <a href="analysis.js">analysis.js · esperimenti statistici</a>
       </div>
     </header>
 
     <div class="layout">
-      <article class="prose">
-        <h2 id="consegna">Consegna</h2>
-        <blockquote>
-          <p>Riporta qui il testo dell'esercizio, così com'è stato assegnato.</p>
-        </blockquote>
+      <article class="prose wide">
 
-        <h2 id="dati">Dati</h2>
-        <p>Descrivi il dataset: origine, numero di osservazioni, variabili principali.</p>
+        <h2 id="consegna">Consegna</h2>
+        <ul>
+          <li>Mostrare come una chiave privata <code>k</code> genera la chiave pubblica <code>Q = kG</code> con la moltiplicazione scalare su curva ellittica, in JavaScript/HTML/CSS.</li>
+          <li>Curva giocattolo <code>y² = x³ + 7 (mod 17)</code>, punto base <code>G = (1, 5)</code>, chiave <code>k = 6</code>. Stampare G, 2G, …, kG (o usare un metodo più veloce per k grandi) e il punto finale come <b>TOY PUBLIC KEY</b>.</li>
+          <li>Opzionale: una visualizzazione rallentata dell'algoritmo.</li>
+          <li>Esplorazione statistica: ripetere con altri k e altre basi; distribuzione di x e y, frequenza dei valori, distribuzione dei bit, uniformità, correlazioni input→output, avalanche. Discutere quali proprietà contano per una funzione unidirezionale e quali sono tipiche delle hash.</li>
+        </ul>
+        <details>
+          <summary>Testo originale della traccia</summary>
+<pre>HMWK 1 — Example App: Public-Key Cryptography PRIVATE KEY → PUBLIC KEY in Ethereum
+
+Notes: Elliptic-curve scalar multiplication can be viewed as a cryptographic one-way function.
+It is deterministic and easy to compute in the forward direction: private key k → public key Q = kG
+while recovering k from Q is computationally difficult. It therefore shares some properties with
+cryptographic hash functions, but it is based on the Elliptic Curve Discrete Logarithm Problem (ECDLP)
+and is used for public-key cryptography and digital signatures.
+
+The goal is to understand the basic idea of elliptic-curve scalar multiplication, not to implement
+a real cryptographic system.
+
+TASK
+Write a small JavaScript/html/css program showing how a private key can be used to generate a public
+key using elliptic-curve scalar multiplication. (In Ethereum, the relevant elliptic curve is secp256k1).
+
+Hints: For this exercise, use a small toy curve: y² = x³ + 7 (mod 17)
+For example, use for instance the following base point: G = (1, 5) Choose for instance a small private key: k = 6
+The public key is: Q = kG  Define the toy curve and the base point G. Define the private key k.
+Implement the basic point-addition operation. Compute and print: G, 2G, 3G, ..., kG. Or use a faster method for a larger k.
+Print the final point as the TOY PUBLIC KEY.
+
+OPTIONAL-GURU LEVEL :-)  Make a slown-down visual representation of the algo (may use the canvas or SVG, whatever you like better)
+
+== STATISTICAL EXPLORATION ==
+
+Repeat the experiment with different values of k and, if useful, different valid base points.
+Explore simple statistical properties of the resulting points, for example:
+
+distribution of x and y coordinates;
+frequency of individual values;
+distribution of bits;
+apparent uniformity;
+correlations between input and output;
+possible avalanche-like behaviour.
+Discuss which of these properties are meaningful for a cryptographic one-way function and which are properties specifically associated with cryptographic hash functions.</pre>
+        </details>
+
+        <h2 id="scale">L'idea: tre scale</h2>
+        <p>
+          Il codice è lo stesso a ogni scala: cambiano solo i numeri. Su una curva piccola si vede come funziona l'algoritmo;
+          su una media si può fare statistica esatta; su quella vera si capisce perché la funzione è unidirezionale.
+        </p>
         <table>
-          <thead><tr><th>Variabile</th><th>Tipo</th><th>Descrizione</th></tr></thead>
+          <thead><tr><th>scala</th><th>curva y² = x³ + 7 (mod p)</th><th>punti generati da G</th><th>a cosa serve</th></tr></thead>
           <tbody>
-            <tr><td><code>eta</code></td><td>numerica</td><td>Età in anni</td></tr>
-            <tr><td><code>sesso</code></td><td>categoriale</td><td>M / F</td></tr>
+            <tr><td><span class="scale-tag">1</span>giocattolo</td><td>p = 17</td><td>9</td><td>capire e vedere l'algoritmo</td></tr>
+            <tr><td><span class="scale-tag">2</span>intermedia</td><td>p = 7537</td><td>7369 (primo)</td><td>statistica su tutta la popolazione</td></tr>
+            <tr><td><span class="scale-tag">3</span>reale</td><td>secp256k1, p ≈ 2<sup>256</sup></td><td>≈ 2<sup>256</sup> (primo)</td><td>campionare e stimare i tempi di attacco</td></tr>
           </tbody>
         </table>
-
-        <h2 id="svolgimento">Svolgimento</h2>
         <p>
-          Le formule si scrivono in LaTeX. In linea: la media campionaria è
-          $\bar{x} = \frac{1}{n}\sum_{i=1}^{n} x_i$. A blocco:
+          Perché p = 7537: ho cercato una curva con le stesse due proprietà strutturali di secp256k1, cioè
+          $p \equiv 1 \pmod 3$ e un numero di punti <b>primo</b> (cofattore 1). Con p = 7537 i punti sono n = 7369, primo:
+          ogni punto diverso da O genera tutta la curva, come in secp256k1. Posso quindi calcolare <b>tutti</b> i multipli kG,
+          cioè la popolazione intera, e i test sono esatti invece che campionari. La scala 1 è la curva della traccia:
+          lì G genera solo 9 punti su 18, quindi non ha queste proprietà e serve solo a capire.
         </p>
-        <p>$$ s^2 = \frac{1}{n-1}\sum_{i=1}^{n}\left(x_i - \bar{x}\right)^2 $$</p>
+        <p>
+          Come termine di confronto uso <b>SHA-256</b>, una vera funzione hash, sugli stessi input. La domanda della traccia
+          ("cosa è proprio di una funzione unidirezionale e cosa di una hash") diventa così una misura e non solo un'opinione.
+        </p>
 
-        <h3>Codice</h3>
-<pre><code class="language-r">dati &lt;- read.csv("dati.csv")
-summary(dati$eta)
-hist(dati$eta, breaks = 20, col = "#00ff41", main = "Distribuzione dell'età")</code></pre>
+        <h2 id="teoria">Teoria in breve</h2>
+        <p>
+          I punti della curva sono le coppie (x, y) con $y^2 = x^3 + 7$ in aritmetica modulo p, più un punto speciale O
+          ("all'infinito") che fa da zero. La somma di due punti P e Q si ottiene tracciando la retta per P e Q (la tangente se P = Q),
+          prendendo il terzo punto in cui incontra la curva e riflettendolo rispetto all'asse x:
+        </p>
+        <p>$$\lambda=\frac{y_2-y_1}{x_2-x_1}\ (P\neq Q)\qquad \lambda=\frac{3x_1^2}{2y_1}\ (P=Q)$$</p>
+        <p>$$x_3=\lambda^2-x_1-x_2,\qquad y_3=\lambda\,(x_1-x_3)-y_1 \qquad (\text{tutto mod } p)$$</p>
+        <p>
+          Modulo p non si "divide": si moltiplica per l'inverso modulare, che si calcola con l'algoritmo di Euclide esteso.
+          La chiave pubblica è $Q = kG = G + G + \dots + G$ ($k$ volte). Farlo una somma alla volta costa k passi; con il
+          <b>double-and-add</b> basta leggere k in binario e fare circa $\log_2 k$ raddoppi e somme. Esempio con $k = 6 = 110_2$:
+          $G \to 2G \to 3G \to 6G$.
+        </p>
+<pre><code class="language-js">function mul(C, k, P) {
+  let R = null;                          // O, punto all'infinito
+  for (const bit of k.toString(2)) {     // dal bit più significativo
+    R = add(C, R, R);                    // raddoppio
+    if (bit === "1") R = add(C, R, P);   // somma G
+  }
+  return R;
+}</code></pre>
+        <p>
+          Il passaggio inverso, ritrovare k da Q, è il <b>problema del logaritmo discreto sulle curve ellittiche (ECDLP)</b>:
+          non se ne conosce un algoritmo efficiente. Per questo $k \mapsto kG$ è una candidata funzione unidirezionale.
+        </p>
 
-        <figure>
-          <img src="../../assets/grafico-esempio.svg" alt="Esempio di grafico">
-          <figcaption>Figura 1 — Sostituisci con il tuo grafico (es. <code>figura1.png</code> in questa cartella).</figcaption>
-        </figure>
+        <h2 id="scala1"><span class="scale-tag">1</span>Laboratorio sulla curva giocattolo</h2>
+        <p>
+          Scegli la chiave privata e il punto base (ogni punto ha un ordine diverso: ne conto i multipli prima di tornare a O).
+          Il metodo «G, 2G, …, kG» stampa tutti i passaggi richiesti dalla traccia; «double-and-add» è il metodo veloce.
+          Premi ▶ per l'animazione, oppure clicca una riga della tabella per saltare a quel passo.
+        </p>
+        <div class="lab">
+          <div class="panel">
+            <h3>parametri</h3>
+            <p class="small" style="margin-top:0">Curva y² = x³ + 7 (mod 17) · punti: <b id="toy-npts">18</b> (compreso O)</p>
+            <div class="field">
+              <label for="toy-g">punto base G</label>
+              <select id="toy-g"></select>
+            </div>
+            <div class="field">
+              <label for="toy-k">chiave privata k</label>
+              <div class="row">
+                <input id="toy-k" type="text" inputmode="numeric" value="6" autocomplete="off" style="max-width:160px" aria-describedby="toy-err">
+                <button class="ctl" id="toy-go" type="button">calcola</button>
+              </div>
+              <span class="err" id="toy-err" role="alert"></span>
+            </div>
+            <div class="field">
+              <span class="lbl">metodo</span>
+              <div class="row">
+                <button class="ctl" id="m-naive" type="button" aria-pressed="true">G, 2G, …, kG</button>
+                <button class="ctl" id="m-dna" type="button" aria-pressed="false">double-and-add</button>
+              </div>
+              <span class="small" id="toy-note"></span>
+            </div>
+            <div class="result" id="toy-result"></div>
+            <div class="steps-wrap"><table class="steps" id="toy-table"></table></div>
+          </div>
 
-        <h2 id="conclusioni">Conclusioni</h2>
-        <div class="callout">
-          <strong>Risultato.</strong> Riassumi qui la risposta finale alla domanda dell'homework.
+          <div class="panel viz">
+            <h3>visualizzazione passo-passo</h3>
+            <canvas id="toy-canvas" role="img" aria-label="Griglia 17 per 17 con i punti della curva e i passaggi della moltiplicazione scalare"></canvas>
+            <div class="row controls">
+              <button class="ctl" id="toy-first" type="button" aria-label="Primo fotogramma">⏮</button>
+              <button class="ctl" id="toy-prev" type="button" aria-label="Fotogramma precedente">◀</button>
+              <button class="ctl" id="toy-play" type="button">▶ avvia</button>
+              <button class="ctl" id="toy-next" type="button" aria-label="Fotogramma successivo">▶|</button>
+              <button class="ctl" id="toy-last" type="button" aria-label="Ultimo fotogramma">⏭</button>
+              <span class="spacer"></span>
+              <label class="small" for="toy-speed" style="margin:0">ms per fotogramma</label>
+              <input id="toy-speed" type="range" min="150" max="1800" step="50" value="800">
+              <span class="counter" id="toy-counter"></span>
+            </div>
+            <div class="caption" id="toy-caption" aria-live="polite"></div>
+            <div class="legend-line">
+              <span><i style="background:#00ff41"></i>P</span>
+              <span><i style="background:#6ee7ff"></i>Q</span>
+              <span><i style="background:#ffcc66"></i>retta (17 punti, uno per colonna) e terzo punto T</span>
+              <span><i style="background:#ff6b9d"></i>riflessione</span>
+              <span><i style="background:#d6ffe0"></i>risultato</span>
+            </div>
+          </div>
         </div>
+        <p class="small">
+          Con G = (1, 5) i multipli sono (1,5), (2,10), (5,9), (12,1), (12,16), (5,8), (2,7), (1,12) e poi 9G = O: già questo mostra che con
+          pochi punti la funzione si "chiude su se stessa" e che k e k + 9 danno la stessa chiave pubblica.
+        </p>
+
+        <h2 id="scala2"><span class="scale-tag">2</span>Esplorazione statistica su una curva intermedia (p = 7537)</h2>
+        <p>
+          Qui calcolo tutti i 7368 punti kG, con k = 1 … n−1, e li analizzo. Due precauzioni da statistico:
+          i <b>valori distinti</b> (x compare due volte e y tre volte, quindi contarli tutti gonfierebbe la significatività)
+          e la <b>correzione di Bonferroni</b> (quando faccio m test insieme, la soglia al 5% diventa 5%/m).
+          Il p-value è la probabilità di vedere uno scostamento almeno così grande se i dati fossero davvero uniformi:
+          un valore piccolo è un segnale, uno grande non prova l'uniformità, dice solo che non l'abbiamo smentita.
+        </p>
+        <div class="run-row">
+          <button class="ctl" id="s2-run" type="button">riesegui gli esperimenti</button>
+          <span id="s2-status" aria-live="polite">in attesa…</span>
+        </div>
+        <div class="stat-grid" id="s2-grid"></div>
+
+        <h2 id="scala3"><span class="scale-tag">3</span>Il caso reale: secp256k1</h2>
+        <p>
+          Stessa funzione <code>mul</code>, ma con numeri da 256 bit (in coordinate jacobiane, per evitare un'inversione a ogni passo).
+          Qui i punti sono circa 2<sup>256</sup>: non si possono enumerare, si può solo campionare.
+          Il codice si controlla da solo contro valori noti, mostrati qui sotto.
+        </p>
+        <div class="panel">
+          <div class="small" id="s3-test" style="margin:0 0 12px"></div>
+          <div class="row">
+            <button class="ctl" id="s3-gen" type="button">genera una chiave casuale</button>
+            <button class="ctl" id="s3-sample" type="button">campiona chiavi (500 + avalanche)</button>
+            <span class="small" id="s3-status" style="margin:0" aria-live="polite"></span>
+          </div>
+          <div id="s3-out" style="margin-top:12px"></div>
+        </div>
+        <div class="stat-grid" id="s3-grid"></div>
+        <h3>Quanto costa ritrovare k</h3>
+        <div id="s3-brute"></div>
+
+        <h2 id="discussione">Discussione</h2>
+        <p>
+          Il risultato più istruttivo è il confronto tra le scale 2 e 3: la curva intermedia supera tutti i test statistici,
+          esattamente come secp256k1, eppure si rompe in pochi millisecondi.
+        </p>
+        <h3>Cosa serve davvero a una funzione unidirezionale</h3>
+        <p>
+          Una funzione unidirezionale (OWF) deve essere facile da calcolare e difficile da invertire su un input casuale. Nient'altro.
+          Tutte le altre proprietà misurate sopra dipendono dall'uso che se ne vuole fare.
+        </p>
+        <table>
+          <thead><tr><th>proprietà</th><th>cosa ho misurato</th><th>serve a una OWF?</th><th>tipica delle hash?</th></tr></thead>
+          <tbody>
+            <tr><td>uniformità di x e y</td><td>χ² compatibile con l'uniformità (scale 2 e 3)</td><td>No. Se f è una OWF lo è anche (x, y) ↦ (f(x), y), che rivela metà dell'input: una OWF può avere output molto non uniformi</td><td>Sì, come comportamento pseudocasuale</td></tr>
+            <tr><td>bit al 50%</td><td>sì, salvo l'effetto di p che non è una potenza di 2</td><td>No</td><td>Sì</td></tr>
+            <tr><td>frequenza dei valori</td><td>x due volte, y tre volte: struttura algebrica</td><td>No. Mostra che la sola x non è iniettiva</td><td>Sì: le collisioni devono essere introvabili</td></tr>
+            <tr><td>correlazione input→output</td><td>r ≈ 0, ma x(k) = x(n−k)</td><td>No</td><td>Sì: l'output non deve rivelare nulla dell'input</td></tr>
+            <tr><td>avalanche</td><td>≈ 50% sia per kG sia per SHA-256</td><td>No</td><td>Sì: è un requisito di progetto</td></tr>
+            <tr><td>incrementi e linearità</td><td>Q(k+1) − Q(k) = G sempre; (k₁+k₂)G = k₁G + k₂G</td><td>Non richiesta, ma è ciò che rende possibili firme digitali e scambio di chiavi (ECDH)</td><td>No: in una hash sarebbe un difetto grave</td></tr>
+            <tr><td>difficoltà di inversione (ECDLP)</td><td>scala 2: millisecondi; scala 3: oltre l'età dell'universo</td><td><b>Sì: è l'unica proprietà essenziale</b></td><td>Corrisponde alla resistenza alla preimmagine</td></tr>
+          </tbody>
+        </table>
+        <h3>Numeri misurati</h3>
+        <div id="measured"></div>
+
+        <h3>Superare i test non è sicurezza</h3>
+        <p>
+          La scala 2 ha statistiche buone quanto la scala 3: valori uniformi, bit bilanciati, nessuna correlazione lineare, avalanche al 50%.
+          Un test può scoprire un difetto, non dimostrare che non ce ne sono. Ciò che separa le due scale è solo la dimensione del problema
+          (n ≈ 7·10<sup>3</sup> contro 10<sup>77</sup>). Per una OWF la proprietà che conta è la difficoltà computazionale, e nessun istogramma la misura.
+        </p>
+        <h3>Cosa è specifico delle hash</h3>
+        <p>
+          Una hash comprime input di lunghezza arbitraria in un'impronta di lunghezza fissa e deve resistere alle collisioni e alle seconde preimmagini;
+          si vuole che si comporti come un oracolo casuale, per questo avalanche e assenza di struttura sono obiettivi di progetto.
+          La moltiplicazione scalare invece non comprime (k e Q hanno la stessa taglia, e k ↦ (x, y) è iniettiva su [1, n−1]) ed è piena di struttura per costruzione:
+          è l'omomorfismo tra (ℤ<sub>n</sub>, +) e il gruppo dei punti. La struttura non è un difetto: è il motivo per cui la usiamo per le firme.
+        </p>
+        <h3>La struttura che i test classici non vedono</h3>
+        <p>
+          Dentro y² = x³ + 7 c'è struttura che gli istogrammi non mostrano: la simmetria x(k) = x(n−k) e le terne (x, ωx, ω²x), cioè la moltiplicazione per
+          un λ con λ³ ≡ 1 (mod n). Su secp256k1 esistono le stesse costanti, β e λ, e l'auto-verifica sopra conferma che λ·G = (β·G<sub>x</sub>, G<sub>y</sub>).
+          Si usano per accelerare i calcoli (metodo GLV) e, al più, riducono di un fattore ≈ √6 ≈ 2,4 il costo degli attacchi generici: nulla di fronte a 10<sup>38</sup> operazioni,
+          ma ricorda che l'uscita di kG non è "casuale" in senso stretto.
+        </p>
+        <div class="note">
+          Demo didattica: le chiavi generate qui non vanno usate per nulla di reale (BigInt non è a tempo costante e il generatore di numeri casuali non è stato verificato per questo scopo).
+        </div>
+
+        <h2 id="codice">Codice</h2>
+        <p>
+          Tutto gira nel browser, senza librerie (solo KaTeX per le formule e highlight.js per il codice):
+          <a href="ec.js">ec.js</a> aritmetica sulla curva e piani di calcolo, <a href="stats.js">stats.js</a> χ², correlazione e SHA-256,
+          <a href="analysis.js">analysis.js</a> gli esperimenti, <a href="lab.js">lab.js</a> la visualizzazione, <a href="explore.js">explore.js</a> e <a href="charts.js">charts.js</a> i grafici.
+          SHA-256 e il test χ² sono verificati contro valori di riferimento noti; le coordinate di secp256k1 contro 2G, 3G e n·G = O.
+        </p>
       </article>
 
       <aside class="toc">
         <p>In questa pagina</p>
         <ol>
           <li><a href="#consegna">Consegna</a></li>
-          <li><a href="#dati">Dati</a></li>
-          <li><a href="#svolgimento">Svolgimento</a></li>
-          <li><a href="#conclusioni">Conclusioni</a></li>
+          <li><a href="#scale">Tre scale</a></li>
+          <li><a href="#teoria">Teoria</a></li>
+          <li><a href="#scala1">Scala 1 · laboratorio</a></li>
+          <li><a href="#scala2">Scala 2 · statistica</a></li>
+          <li><a href="#scala3">Scala 3 · secp256k1</a></li>
+          <li><a href="#discussione">Discussione</a></li>
+          <li><a href="#codice">Codice</a></li>
         </ol>
       </aside>
     </div>
@@ -102,5 +324,12 @@ hist(dati$eta, breaks = 20, col = "#00ff41", main = "Distribuzione dell'età")</
       <a href="../../">cd ~</a>
     </div>
   </footer>
+
+  <script src="ec.js"></script>
+  <script src="stats.js"></script>
+  <script src="charts.js"></script>
+  <script src="analysis.js"></script>
+  <script src="lab.js"></script>
+  <script src="explore.js"></script>
 </body>
 </html>
