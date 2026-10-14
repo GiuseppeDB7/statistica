@@ -51,7 +51,7 @@ const Analysis2 = (() => {
   const binomZ = (obs, n, p) => (obs - n * p) / Math.sqrt(n * p * (1 - p));
 
   /* ================= 1. BIP-39: encoding e checksum ================= */
-  async function bip39Stats(progress = () => {}) {
+  async function bip39Stats(progress = () => {}, opts = {}) {
     const R = {};
     progress("BIP-39: checksum su sequenze di parole casuali");
     R.checksum = [];
@@ -67,10 +67,12 @@ const Analysis2 = (() => {
       R.checksum.push({ words, N, valid, p, z: binomZ(valid, N, p) });
       await tick();
     }
-    progress("BIP-39: uniformità delle parole generate");
-    const M = 5000, counts = new Array(2048).fill(0);
-    for (let t = 0; t < M; t++) for (const i of entropyToIndices(rnd(16))) counts[i]++;
-    R.words = { counts, M, ...Stats.chiSquare(counts, new Array(2048).fill(1 / 2048)) };
+    if (opts.words !== false) {
+      progress("BIP-39: uniformità delle parole generate");
+      const M = 5000, counts = new Array(2048).fill(0);
+      for (let t = 0; t < M; t++) for (const i of entropyToIndices(rnd(16))) counts[i]++;
+      R.words = { counts, M, ...Stats.chiSquare(counts, new Array(2048).fill(1 / 2048)) };
+    }
     return R;
   }
 

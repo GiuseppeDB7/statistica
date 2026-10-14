@@ -55,77 +55,10 @@
           <li>Collocare le tecnologie nel tempo (RSA 1977, SHA-2 2001, BIP-32 2012, BIP-39 2013, BIP-44 2014, SHA-3 2015, EIP-55 2016) e spiegare la differenza tra SHA-2/SHA-512 e Keccak/SHA-3, e perché Keccak-256 non è SHA3-256.</li>
           <li>Spiegare perché la pipeline usa tecniche diverse invece di un unico algoritmo, discutere le <b>proprietà statistiche</b> e, se possibile, provare un portafoglio reale (MetaMask, Rabby, …).</li>
         </ul>
-        <details>
-          <summary>Testo originale della traccia</summary>
-<pre>HMWK 2 — From Wallet Seed to Ethereum Address: Hashing, Key Derivation and Cryptographic Primitives
-Statistical properties
-
-TASK
-Check the practical cryptographic pipeline used in Ethereum wallets, from a mnemonic phrase to an Ethereum address and
-briefly describe the role and purpose of the following standards and cryptographic primitives:
-
-BIP-39 — mnemonic sentence and seed generation;
-BIP-32 — hierarchical deterministic (HD) key derivation;
-BIP-44 — standard derivation paths for hierarchical deterministic wallets;
-secp256k1 — elliptic-curve public-key cryptography;
-Keccak-256 — hash function used in Ethereum address derivation;
-EIP-55 — mixed-case checksum encoding for Ethereum addresses.
-
-In case try experiencing with software such as metamask, rabby, exodus, rainbow, ... or similar
-to understand the role of each piece of technology ...
-
-A simplified wallet pipeline can be represented as:
-
-Mnemonic ↓ BIP-39 ↓
-Seed  BIP-32 / BIP-44 ↓
-Private Key ↓ secp256k1 ↓
-Public Key ↓ Keccak-256 ↓
-Ethereum Address ↓ EIP-55 ↓
-Checksummed Address
-
-For the purpose of this homework, distinguish clearly between:
-
-key generation and key derivation;
-public-key cryptography;
-hashing;
-checksums;
-encoding.
-Also briefly discuss the role of each primitive and how the different steps fit together
-and the statistical properties.
-
-Hints: TEMPORAL AND HISTORICAL CONTEXT
-
-Briefly place these technologies in chronological context.
-
-Discuss the approximate historical order of:
-RSA — public-key cryptography, introduced in 1977;
-SHA-2 / SHA-512 — standardized in 2001;
-BIP-32 — hierarchical deterministic wallets, 2012;
-BIP-39 — mnemonic code for generating deterministic wallets, 2013;
-BIP-44 — multi-account hierarchical deterministic wallets, 2014;
-SHA-3 — standardized by NIST in 2015, based on Keccak;
-EIP-55 — Ethereum mixed-case checksum addresses, 2016.
-Also explain the distinction between:
-
-SHA-2 / SHA-512 and Keccak / SHA-3
-
-They are related historically and both belong to the family of cryptographic hash functions, but Keccak is the underlying design selected for SHA-3, while Ethereum uses Keccak-256, which is not identical to the standardized SHA3-256 function (because of the padding/domain-separation convention.)
-
-Why does the Ethereum wallet pipeline use several different cryptographic techniques instead of using one single algorithm for everything?
-Explain briefly why:
-BIP-39/BIP-32/BIP-44 → key management and derivation
-secp256k1 → public/private key relationship and digital signatures
-Keccak-256 → hashing
-EIP-55 → checksum/error detection
-serve different purposes in the overall system.</pre>
-        </details>
 
         <h2 id="idea">L'idea: ogni anello ha un tipo, e il tipo lascia un'impronta</h2>
         <p>
-          La pipeline ha undici passaggi ma solo sei <b>tipi</b> di operazione. Il tipo si riconosce da che cosa fa e da come si comporta
-          statisticamente: un encoding conserva la somiglianza tra gli input, una derivazione o un hash la distrugge, una chiave pubblica
-          conserva una struttura algebrica, un checksum rileva errori con una probabilità calcolabile. Qui ogni anello è implementato,
-          mostrato con i suoi valori intermedi e <b>misurato</b>.
+          La pipeline ha undici passaggi ma solo sei <b>tipi</b> di operazione. Il tipo si riconosce da come si comporta statisticamente: un encoding conserva la somiglianza tra gli input, una derivazione o un hash la distrugge, una chiave pubblica conserva una struttura algebrica, un checksum rileva errori con una probabilità calcolabile. Ogni anello qui sotto è implementato, mostrato e <b>misurato</b>.
         </p>
         <div class="legend-kinds">
           <span class="kind k-gen">generazione</span><span class="kind k-kdf">derivazione</span><span class="kind k-pub">chiave pubblica</span>
@@ -149,7 +82,6 @@ serve different purposes in the overall system.</pre>
         <h2 id="storia">Contesto storico e SHA-2 contro SHA-3</h2>
         <ul class="timeline">
           <li><span class="yr">1977</span><span class="nm">RSA</span><span class="sub">Nasce la crittografia a chiave pubblica "pratica". secp256k1 è un'altra famiglia (curve ellittiche), ma risponde allo stesso bisogno.</span></li>
-          <li><span class="yr">2000</span><span class="nm">secp256k1</span><span class="sub">Definita nello standard SEC 2; Bitcoin la sceglie nel 2009 e Ethereum la eredita.</span></li>
           <li class="key"><span class="yr">2001</span><span class="nm">SHA-2 / SHA-512</span><span class="sub">Pubblicata nel 2001, standard FIPS 180-2 nel 2002. Dentro la pipeline lavora già prima di Keccak: PBKDF2 e HMAC usano SHA-512, il checksum BIP-39 usa SHA-256.</span></li>
           <li class="key"><span class="yr">2012</span><span class="nm">BIP-32</span><span class="sub">Portafogli gerarchici deterministici: da un solo seed un albero di chiavi. Nello stesso anno Keccak vince il concorso NIST per SHA-3.</span></li>
           <li class="key"><span class="yr">2013</span><span class="nm">BIP-39</span><span class="sub">Una frase di parole come backup leggibile dall'uomo del seed.</span></li>
@@ -212,18 +144,16 @@ serve different purposes in the overall system.</pre>
 
         <h2 id="reali">Provarlo con un portafoglio vero</h2>
         <p>
-          La prova più concreta è confrontare il risultato con un portafoglio reale: il confronto si fa a mano, coi passi qui sotto.
-          Il codice di questa pagina è invece già verificato contro valori pubblicati: i vettori ufficiali di BIP-39 (entropia → frase → seed) e di BIP-32 (chiavi master e figlie),
-          i quattro indirizzi di esempio della specifica EIP-55 e gli indirizzi noti della frase di prova di Hardhat/Anvil (l'etichetta ✓ nella pipeline). Per ripetere la verifica:
+          Il codice è già verificato contro valori pubblicati: vettori ufficiali di BIP-39 e BIP-32, indirizzi di esempio di EIP-55, indirizzi della frase di prova di Hardhat/Anvil (l'etichetta ✓ nella pipeline).
+          Per confrontarlo con un portafoglio reale:
         </p>
         <ol>
-          <li>In un profilo del browser <b>separato</b>, installa MetaMask (o Rabby, Rainbow, …) e scegli «importa un portafoglio esistente».</li>
-          <li>Inserisci la frase di prova di Hardhat (quella del pulsante qui sopra). Il primo account deve essere <code>0xf39F…2266</code>, il secondo <code>0x7099…79C8</code>: sono gli indirizzi <code>m/44'/60'/0'/0/0</code> e <code>/1</code>.</li>
-          <li>Aggiungi altri account e confrontali con «indirizzo successivo». Cambiare il percorso (per esempio il livello account) fa cambiare tutti gli indirizzi.</li>
-          <li>Non tutti i portafogli supportano la passphrase; molti portafogli hardware sì. Con una passphrase si ottiene un portafoglio completamente diverso e <i>nessun errore</i>: per questo è utile e pericolosa insieme.</li>
+          <li>In un profilo del browser <b>separato</b> installa MetaMask (o Rabby, Rainbow, …) e scegli «importa un portafoglio esistente».</li>
+          <li>Inserisci la frase di prova di Hardhat (pulsante qui sopra): il primo account deve essere <code>0xf39F…2266</code>, il secondo <code>0x7099…79C8</code>.</li>
+          <li>Non tutti i portafogli supportano la passphrase: con una passphrase si ottiene un portafoglio completamente diverso e <i>nessun errore</i>.</li>
         </ol>
         <div class="note">
-          Non mandare mai fondi veri a indirizzi derivati da una frase pubblica come questa: esistono programmi che controllano di continuo quegli indirizzi e li svuotano.
+          Non mandare mai fondi veri a indirizzi derivati da una frase pubblica come questa: esistono programmi che li svuotano.
         </div>
 
         <h2 id="standard">Il ruolo di ogni standard</h2>
@@ -241,9 +171,7 @@ serve different purposes in the overall system.</pre>
 
         <h2 id="statistica">Esplorazione statistica</h2>
         <p>
-          Gli esperimenti si avviano da soli (circa 20 secondi) e usano dati reali: entropia dal generatore casuale del browser, chiavi e indirizzi veri, tutti gli hash calcolati dal codice di questa pagina.
-          Come nell'homework 1 conto i test insieme: con molti test, un p-value basso ogni tanto è normale, e quando un bit sembra sospetto lo <b>replico su dati nuovi</b> invece di fidarmi del primo risultato.
-          La domanda è sempre la stessa: che impronta statistica lascia ciascun tipo di anello?
+          Gli esperimenti si avviano da soli (circa 12 secondi) e usano dati reali: entropia dal generatore del browser, chiavi e indirizzi veri, hash calcolati dal codice di questa pagina. La domanda è sempre la stessa: che impronta statistica lascia ciascun tipo di anello? Un risultato sospetto lo replico su dati nuovi, e con molti test uso la correzione di Bonferroni.
         </p>
         <div class="run-row">
           <button class="ctl" id="s-run" type="button">riesegui gli esperimenti</button>
@@ -283,11 +211,8 @@ serve different purposes in the overall system.</pre>
 
         <h2 id="codice">Codice</h2>
         <p>
-          Nessuna libreria crittografica (solo SHA-256/SHA-512, HMAC e PBKDF2 di WebCrypto, il resto è scritto qui):
-          <a href="keccak.js">keccak.js</a> Keccak-f[1600] e sponge, <a href="wallet.js">wallet.js</a> BIP-39, BIP-32/44, indirizzo ed EIP-55,
-          <a href="wordlist.js">wordlist.js</a> la lista inglese BIP-39 (dal repository ufficiale, SHA-256 verificato), <a href="analysis2.js">analysis2.js</a> gli esperimenti,
-          <a href="pipeline.js">pipeline.js</a> e <a href="explore2.js">explore2.js</a> l'interfaccia. Riuso da homework 1 <a href="../hw1/ec.js">ec.js</a> (secp256k1), <a href="../hw1/stats.js">stats.js</a> e <a href="../hw1/charts.js">charts.js</a>.
-          Keccak-256 è verificata contro i valori noti e SHA3-256 contro OpenSSL anche su messaggi di più blocchi; la pipeline contro i vettori BIP-39, BIP-32 ed EIP-55 ufficiali.
+          Nessuna libreria crittografica (solo SHA-2, HMAC e PBKDF2 di WebCrypto): <a href="keccak.js">keccak.js</a>, <a href="wallet.js">wallet.js</a>, <a href="analysis2.js">analysis2.js</a>, <a href="pipeline.js">pipeline.js</a>.
+          secp256k1 e statistica sono quelli dell'homework 1. Ogni anello è verificato contro vettori ufficiali.
         </p>
       </article>
 

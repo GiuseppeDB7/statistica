@@ -33,13 +33,10 @@
     rows.map((r) => `<tr>${r.map((c) => `<td>${c}</td>`).join("")}</tr>`).join("") + `</tbody></table>`;
 
   card("ck", "BIP-39 · checksum su frasi casuali");
-  card("wd", "BIP-39 · uniformità delle parole", 190);
   card("av", "Avalanche lungo la pipeline", 200);
   card("hs", "Hash: Keccak-256, SHA3-256, SHA-256");
   card("ad", "Indirizzi reali: le 40 cifre esadecimali", 190);
-  card("pv", "Il p-value sotto H₀ è uniforme", 190);
   card("e5", "EIP-55: quanti errori di battitura scopre");
-  card("bd", "Paradosso del compleanno e indirizzi da 160 bit");
   card("b3", "BIP-32: struttura e perdita di una chiave");
 
   /* ---------- Rendering delle singole schede ---------- */
@@ -48,16 +45,6 @@
     kv("ck", table(["parole", "frasi casuali", "con checksum corretto", "atteso", "z"],
       r.checksum.map((c) => [c.words, int(c.N), `${int(c.valid)} (${pct(c.valid / c.N, 2)})`, `1/${Math.round(1 / c.p)} = ${pct(c.p, 2)}`, it(c.z)])) +
       `<br>Una frase di parole a caso ha il checksum giusto con probabilità 2<sup>−CS</sup>: il checksum scopre un errore di trascrizione con probabilità 94% (12 parole) o 99,6% (24 parole), ma <b>non aggiunge entropia</b>: la sicurezza resta di 128 o 256 bit.`);
-    const per = 2048 / 16, bins = new Array(16).fill(0);
-    r.words.counts.forEach((c, i) => { bins[Math.floor(i / per)] += c; });
-    const exp = r.words.M * 12 / 16;
-    Charts.bars($("ch-wd"), {
-      series: [{ name: `parole (${int(r.words.M * 12)})`, values: bins, color: col.a }], expected: exp, expectedName: "atteso",
-      ymax: Math.ceil((Math.max(...bins) * 1.3) / 100) * 100, yFmt: (v) => int(v), xLabel: (i) => String(i + 1), xTitle: "16 gruppi di 128 parole consecutive della lista",
-    });
-    kv("wd", `${int(r.words.M)} frasi di 12 parole generate da entropia casuale, χ² sulle 2048 parole: χ² = <b>${it(r.words.chi2, 1)}</b> (${r.words.df} gdl), p-value = <b>${pv(r.words.p)}</b> ` +
-      (r.words.p > 0.05 ? ok("compatibile con l'uniformità.") : warn("scostamento significativo.")) +
-      `<br>Ogni parola porta 11 bit: la lista da 2048 è una potenza di 2 proprio per questo, così l'encoding non introduce distorsioni.`);
   }
 
   function showAvalanche(r) {
@@ -79,15 +66,14 @@
 
   function showHash(r) {
     R.hash = r;
-    const rows = Object.entries(r.hashes).map(([n, h]) => [n, `${it(h.maxZ)} <span class="dim">(p = ${it(h.pMax)})</span>`, `${it(h.maxZcounter)} <span class="dim">(p = ${it(h.pMaxCounter)})</span>`, pct(h.avalanche.mean, 2) + ` ± ${it(h.avalanche.sd * 100, 1)}`]);
-    const kc = r.hashes["Keccak-256"];
-    kv("hs", table(["funzione", "max |z| bit (input casuali)", "max |z| bit (contatore)", "avalanche"], rows) +
-      `<br>${r.N} input da 64 byte (avalanche su ${r.A}). Soglia di Bonferroni sull'intera famiglia di ${r.family} test: |z| = <b>${it(r.zCrit)}</b>: ` +
+    const rows = Object.entries(r.hashes).map(([n, h]) => [n, it(h.maxZ), it(h.maxZcounter), pct(h.avalanche.mean, 2) + ` ± ${it(h.avalanche.sd * 100, 1)}`]);
+    const worst = Object.values(r.hashes).reduce((a, h) => (h.maxZcounter > a.maxZcounter ? h : a));
+    kv("hs", table(["funzione", "max |z| bit (casuali)", "max |z| bit (contatore)", "avalanche"], rows) +
+      `<br>${r.N} input da 64 byte. Soglia di Bonferroni su ${r.family} test: |z| = <b>${it(r.zCrit)}</b>: ` +
       (Object.values(r.hashes).every((h) => Math.max(h.maxZ, h.maxZcounter) < r.zCrit) ? ok("nessun bit sopra soglia.") : warn("un bit supera la soglia.")) +
-      `<br>Il massimo su 256 bit va letto così: <b>${it(kc.maxZcounter)}</b> di Keccak sui contatori ha p = ${it(kc.pMaxCounter)} da solo, ma è uno di 6 massimi, quindi capita spesso. ` +
-      `Replica sullo stesso bit (${kc.worstBit}) con dati nuovi: z = <b>${it(kc.replZ)}</b> ${Math.abs(kc.replZ) < 2 ? ok("era caso.") : warn("persiste.")}` +
+      ` Il bit più sospetto (z = ${it(worst.maxZcounter)}), rimisurato su dati nuovi, dà z = <b>${it(worst.replZ)}</b> ${Math.abs(worst.replZ) < 2 ? ok("(era caso).") : warn("(persiste).")}` +
       `<br><b>Keccak-256 contro SHA3-256</b> sullo stesso input: ${r.kvs.equal} digest uguali su ${r.N}, distanza di Hamming media <b>${pct(r.kvs.meanDist)}</b>. ` +
-      `Cambia solo il byte di padding, ma i due output sono indipendenti. E nessuno dei test statistici distingue Keccak-256, SHA3-256 e SHA-256: <b>la statistica non riconosce la famiglia di un hash</b>.`);
+      `Cambia solo il byte di padding, ma i due output sono indipendenti. E nessuno dei test distingue Keccak-256, SHA3-256 e SHA-256: <b>la statistica non riconosce la famiglia di un hash</b>.`);
   }
 
   function showAddress(r) {
@@ -99,17 +85,7 @@
     });
     kv("ad", `${int(r.N)} indirizzi reali (chiavi casuali → secp256k1 → Keccak-256). χ² sulle 16 cifre: <b>${it(r.nibbles.chi2)}</b> (${r.nibbles.df} gdl), p-value = <b>${pv(r.nibbles.p)}</b>.<br>` +
       `Lettere a–f per indirizzo: media <b>${it(r.letters.mean)}</b> (teoria 15, sd ${it(r.letters.theoSd)}; z = ${it(r.letters.z)}) · maiuscole tra le lettere: <b>${pct(r.upper.frac)}</b> (atteso 50%, z = ${it(r.upper.z)}).<br>` +
-      `Se ripeti l'esperimento il p-value cambia: vedi la scheda a destra.`);
-  }
-
-  function showPvalue(r) {
-    R.pv = r;
-    Charts.bars($("ch-pv"), {
-      series: [{ name: "p-value osservati", values: r.bins, color: col.b }], expected: r.REPS / 10, expectedName: "uniforme",
-      ymax: Math.ceil((Math.max(...r.bins) * 1.3) / 10) * 10, yFmt: (v) => int(v), xLabel: (i) => `${it(i / 10, 1)}`, xTitle: "p-value (10 intervalli)",
-    });
-    kv("pv", `Ripeto ${r.REPS} volte lo stesso test (χ² sulle cifre di ${r.N} indirizzi) su dati che sono davvero uniformi. Se H₀ è vera il p-value è uniforme su [0, 1]: <b>${r.below}</b> test su ${r.REPS} cadono sotto 0,05 (attesi ${r.expectedBelow}). ` +
-      `Un p-value basso ogni tanto è normale, e prova solo che il test funziona: per questo con molti test si usa la correzione di Bonferroni e si <b>replica</b> sui dati nuovi.`);
+      `Se ripeti l'esperimento il p-value cambia: sotto H₀ è uniforme in [0, 1], quindi ogni tanto uno basso è normale.`);
   }
 
   function showEip(r) {
@@ -123,15 +99,6 @@
       ["nessun checksum", int(k.minuscolo.n), int(k.minuscolo.missed), pct(miss(k.minuscolo), 0)],
     ]) + `<br>Teoria: una sostituzione sfugge solo se TUTTE le L lettere dell'indirizzo cambiato hanno per caso la maiuscola giusta, con probabilità 2<sup>−L</sup>. Con L ~ Binomiale(40, 6/16): E[2<sup>−L</sup>] = (13/16)<sup>40</sup> = <b>${pct(r.theoMiss, 3)}</b>, cioè circa ${it(exp, 1)} casi su ${int(k.sostituzione.n)}; osservati ${k.sostituzione.missed} (z = ${it(z)}) ${Math.abs(z) < 3 ? ok("in accordo.") : warn("scostamento.")}<br>` +
       `In media un indirizzo ha ${it(r.meanLetters)} lettere, quindi circa 15 bit di checksum "gratis": rileva il <b>${pct(1 - r.theoMiss, 2)}</b> degli errori di battitura, e il 100% degli errori di sola maiuscola. Senza checksum nessun errore viene scoperto.`);
-  }
-
-  function showBirthday(r) {
-    R.bd = r;
-    const N = Math.sqrt((Math.PI * 2 ** 160) / 2), YEAR = 3.156e7;
-    kv("bd", table(["bit dell'hash", "estrazioni fino alla prima collisione", "teoria √(πN/2)"],
-      r.rows.map((w) => [w.bits, `${it(w.mean, 0)} ± ${it(w.sd / Math.sqrt(w.reps), 0)} (${w.reps} prove)`, it(w.theo, 0)])) +
-      `<br>Le collisioni arrivano dopo circa √N estrazioni, non N: è il paradosso del compleanno. Un indirizzo ha 160 bit: servono circa <b>${sci(N)}</b> indirizzi per aspettarsi due indirizzi uguali. ` +
-      `A 10<sup>9</sup> indirizzi al secondo (ogni indirizzo richiede una moltiplicazione su curva) sarebbero ${sci(N / 1e9 / YEAR)} anni. Trovare invece la chiave di un indirizzo <i>dato</i> costa 2<sup>160</sup>, molto di più.`);
   }
 
   function showBip32(r) {
@@ -167,13 +134,11 @@
     const t0 = performance.now();
     const say = (m) => { status.textContent = m + "…"; };
     try {
-      showBip39(await Analysis2.bip39Stats(say)); renderSig();
+      showBip39(await Analysis2.bip39Stats(say, { words: false })); renderSig();
       showAvalanche(await Analysis2.pipelineAvalanche(say)); renderSig();
       showHash(await Analysis2.hashStats(say)); renderSig();
       showAddress(await Analysis2.addressStats(say));
-      showPvalue(await Analysis2.pvalueUniformity(say));
       showEip(await Analysis2.eip55Detection(say)); renderSig();
-      showBirthday(await Analysis2.birthday(say));
       showBip32(await Analysis2.bip32Relations(say)); renderSig();
       status.textContent = `Fatto in ${it((performance.now() - t0) / 1000, 1)} s.`;
     } catch (err) {
