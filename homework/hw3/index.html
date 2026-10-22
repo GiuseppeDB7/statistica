@@ -1,0 +1,313 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#050805">
+  <title>Homework 3 · Statistica</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;600&family=JetBrains+Mono:wght@400;500&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+  <!-- Formule LaTeX: $...$ in linea, $$...$$ a blocco -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"
+    onload="renderMathInElement(document.body,{delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}]})"></script>
+  <link rel="stylesheet" href="../../assets/style.css">
+  <link rel="stylesheet" href="../hw1/hw1.css">
+  <link rel="stylesheet" href="../hw2/hw2.css">
+  <link rel="stylesheet" href="hw3.css">
+  <script src="../../assets/site.js"></script>
+</head>
+<body class="hw-wide">
+  <header class="site-header">
+    <div class="wrap">
+      <a class="brand" href="../../">statistica<span class="cursor">_</span></a>
+      <nav class="nav">
+        <a class="active" href="../../#homework">homework</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <header class="hw-header">
+      <div class="breadcrumb"><a href="../../#homework">cd ../ — tutti gli homework</a></div>
+      <p class="eyebrow">Homework 03 · 22 ottobre 2026</p>
+      <p class="student-line">Giuseppe Di Biase · Matricola <strong>2334106</strong> · LM-66 Cybersecurity</p>
+      <h1>Cesare contro curva ellittica: due schemi, due attacchi</h1>
+      <p class="lead">
+        Lo stesso messaggio cifrato con il cifrario di Cesare e con lo schema giocattolo su secp256k1, poi attaccato in due modi di natura opposta:
+        uno <b>statistico</b> (Cesare) e uno <b>algebrico</b> (chiave privata piccola).
+      </p>
+      <div class="hw-meta">
+        <a href="caesar.js">caesar.js · cifrario e attacchi</a>
+        <a href="ecies.js">ecies.js · schema su curva ellittica</a>
+        <a href="analysis3.js">analysis3.js · esperimenti</a>
+      </div>
+    </header>
+
+    <div class="layout">
+      <article class="prose wide">
+
+        <h2 id="consegna">Consegna</h2>
+        <ul>
+          <li>Cifrare e decifrare un messaggio con lo schema giocattolo su secp256k1 dell'homework 1, descrivendo i passi dell'algoritmo e il ruolo delle chiavi.</li>
+          <li>Fare lo stesso con il <b>cifrario di Cesare</b> e confrontare i due schemi: procedure di cifratura e decifratura, spazio delle chiavi, proprietà statistiche.</li>
+          <li><b>Crittoanalisi statistica di Cesare</b>: con un corpus in una lingua nota, recuperare la chiave dalla distribuzione delle lettere; provarla su cifrati di lunghezza diversa e discuterne efficacia e limiti. Facoltativo: confronto con ricerca esaustiva, frequenze e n-grammi.</li>
+          <li><b>Attacco allo schema su curva ellittica</b> sfruttando la chiave privata piccola: differenze con l'attacco a Cesare, e perché non funzionerebbe con una chiave grande. Facoltativo: altri attacchi e quali debolezze vengono dalla chiave piccola e quali dal progetto.</li>
+        </ul>
+
+        <h2 id="messaggio">Il messaggio</h2>
+        <p>Un solo messaggio, usato in tutta la pagina: cifrato con Cesare e con lo schema a curva ellittica. (Per Cesare gli accenti vengono tolti: l'alfabeto è di 26 lettere.)</p>
+        <div class="panel">
+          <div class="field">
+            <label for="msg">messaggio</label>
+            <textarea id="msg" class="mn-box" spellcheck="false">Ci vediamo domani all'alba al solito posto. Porta il documento e non dire niente a nessuno.</textarea>
+          </div>
+          <div class="row">
+            <button class="ctl" id="msg-short" type="button">messaggio di esempio</button>
+            <button class="ctl" id="msg-it" type="button">testo lungo italiano</button>
+            <button class="ctl" id="msg-en" type="button">testo lungo inglese</button>
+          </div>
+          <p class="small">I testi lunghi sono presi dal tratto di libro <i>non usato</i> per allenare gli attacchi (vedi la sezione sulla crittoanalisi).</p>
+        </div>
+
+        <h2 id="ec">Lo schema giocattolo su secp256k1</h2>
+        <p>È uno schema <b>a chiave pubblica</b> (ElGamal su curva ellittica usato per scambiare una chiave, più un cifrario a flusso): una versione semplificata di ECIES. Il messaggio ha lunghezza qualsiasi.</p>
+        <table>
+          <thead><tr><th>passo</th><th>chi</th><th>che cosa si fa</th></tr></thead>
+          <tbody>
+            <tr><td>chiavi</td><td>destinatario</td><td>sceglie la <b>chiave privata</b> $d$, un intero in $[1,\,2^b-1]$ (la restrizione del giocattolo), e pubblica $Q=d\cdot G$.</td></tr>
+            <tr><td>cifrare</td><td>mittente</td><td>sceglie un numero casuale $r$ usato una volta sola; calcola $C_1=r\cdot G$ e il <b>segreto condiviso</b> $S=r\cdot Q$; ricava un flusso di byte $\mathrm{SHA\text{-}256}(x_S\,\|\,0),\ \mathrm{SHA\text{-}256}(x_S\,\|\,1),\dots$; il cifrato è $c=m\oplus\text{flusso}$. Invia $(C_1,\,c)$.</td></tr>
+            <tr><td>decifrare</td><td>destinatario</td><td>calcola $S=d\cdot C_1$, ricava lo stesso flusso e legge $m=c\oplus\text{flusso}$.</td></tr>
+          </tbody>
+        </table>
+        <p>
+          Funziona perché $d\cdot C_1=d\cdot(r\cdot G)=r\cdot(d\cdot G)=r\cdot Q$: mittente e destinatario arrivano allo <i>stesso</i> $S$ senza scambiarselo. Ruolo dei valori:
+        </p>
+        <table>
+          <thead><tr><th>valore</th><th>segreto?</th><th>ruolo</th></tr></thead>
+          <tbody>
+            <tr><td>$d$</td><td>sì, del destinatario</td><td>serve a decifrare; è ciò che l'attaccante vuole</td></tr>
+            <tr><td>$Q=dG$</td><td>no</td><td>serve a cifrare; da qui si risale a $d$ solo risolvendo il logaritmo discreto</td></tr>
+            <tr><td>$r$</td><td>sì, del mittente</td><td>rende diverso ogni cifrato, anche per lo stesso messaggio; da buttare dopo l'uso</td></tr>
+            <tr><td>$C_1=rG$</td><td>no</td><td>fa arrivare «l'idea di $r$» al destinatario senza rivelarla</td></tr>
+            <tr><td>$S=rQ=dC_1$</td><td>sì</td><td>segreto condiviso: la sola cosa che il flusso di chiave contiene</td></tr>
+          </tbody>
+        </table>
+        <div class="panel">
+          <h3>provalo</h3>
+          <div class="row" style="margin-bottom:8px">
+            <label class="small" for="ec-bits" style="margin:0">ampiezza della chiave privata</label>
+            <input id="ec-bits" type="range" min="8" max="40" step="1" value="20">
+            <b id="ec-bits-out" style="font-family:var(--font-mono)">20 bit</b>
+            <label class="small" style="margin:0 0 0 12px"><input id="ec-small-r" type="checkbox"> chiave effimera <i>r</i> piccola (difetto di progetto)</label>
+          </div>
+          <div class="row">
+            <button class="ctl" id="ec-gen" type="button">1 · genera le chiavi</button>
+            <button class="ctl" id="ec-enc" type="button">2 · cifra il messaggio</button>
+            <button class="ctl" id="ec-dec" type="button">3 · decifra con la chiave privata</button>
+          </div>
+          <div id="ec-out" style="margin-top:10px"></div>
+        </div>
+
+        <h2 id="cesare">Il cifrario di Cesare</h2>
+        <p>
+          La chiave è un numero $k\in\{0,\dots,25\}$ ($k=0$ non cifra nulla). Cifrare sposta ogni lettera di $k$ posti nell'alfabeto, $E_k(x)=x+k \bmod 26$; decifrare la sposta indietro, $D_k(x)=x-k \bmod 26$. È un cifrario <b>simmetrico</b>: la stessa chiave cifra e decifra.
+        </p>
+        <div class="panel">
+          <div class="row" style="margin-bottom:8px">
+            <label class="small" for="cs-shift" style="margin:0">chiave k</label>
+            <input id="cs-shift" type="range" min="0" max="25" step="1" value="3">
+            <b id="cs-shift-out" style="font-family:var(--font-mono)">3</b>
+          </div>
+          <div id="cs-out"></div>
+          <canvas class="chart" id="ch-cs" style="height:190px; margin-top:8px"></canvas>
+          <div class="row" style="margin-top:8px">
+            <button class="ctl" id="cs-send" type="button">attacca questo cifrato ↓</button>
+          </div>
+        </div>
+
+        <h2 id="confronto">Confronto tra i due schemi</h2>
+        <table>
+          <thead><tr><th></th><th>Cesare</th><th>schema su curva ellittica</th></tr></thead>
+          <tbody>
+            <tr><td>tipo</td><td>simmetrico (una chiave)</td><td>a chiave pubblica (d segreta, Q pubblica)</td></tr>
+            <tr><td>spazio delle chiavi</td><td>26 valori ($\approx 2^{4{,}7}$)</td><td>$2^b$ nel giocattolo; $\approx 1{,}2\times10^{77}$ con secp256k1 intera</td></tr>
+            <tr><td>cifrare</td><td>una somma modulo 26 per lettera</td><td>due moltiplicazioni scalari ($rG$, $rQ$), un hash per ogni 32 byte, uno XOR</td></tr>
+            <tr><td>decifrare</td><td>una sottrazione modulo 26</td><td>una moltiplicazione scalare ($dC_1$), un hash, uno XOR</td></tr>
+            <tr><td>cifrato</td><td>stessa lunghezza, ancora lettere</td><td>$C_1$ (un punto) più byte lunghi quanto il messaggio</td></tr>
+            <tr><td>statistica del cifrato</td><td>conserva la distribuzione delle lettere, solo spostata</td><td>praticamente uniforme</td></tr>
+          </tbody>
+        </table>
+        <p>Misura sullo stesso testo (circa 3000 lettere):</p>
+        <div id="cmp-out"></div>
+
+        <h2 id="cesare-attacco">Crittoanalisi statistica di Cesare</h2>
+        <p>
+          Lo spazio delle chiavi ha 26 elementi, quindi provarle tutte è banale. Il problema è <b>riconoscere quale delle 26 decifrazioni è quella giusta</b>: non c'è una verifica esatta, bisogna giudicare se il testo «somiglia alla lingua». Un testo cifrato con Cesare conserva le frequenze delle lettere (solo spostate): è la debolezza da sfruttare. Quattro giudici, dal più semplice al più informato:
+        </p>
+        <ul>
+          <li><b>Picco</b>: la lettera più frequente del cifrato dovrebbe essere la più frequente della lingua (la «e»). Veloce, ma fragile.</li>
+          <li><b>Distribuzione (χ²)</b>: confronta le frequenze di tutte le lettere della decifrazione con quelle della lingua.</li>
+          <li><b>Bigrammi e trigrammi</b>: misura quanto sono probabili le sequenze di 2 e 3 lettere, da un corpus.</li>
+          <li><b>Ricerca esaustiva + dizionario</b>: prova le 26 chiavi e conta le lettere coperte da parole note (serve vedere gli spazi).</li>
+        </ul>
+        <p>
+          Corpus: <i>I promessi sposi</i> (italiano, circa 988 000 lettere di allenamento) e <i>Pride and Prejudice</i> (inglese, circa 508 000), da Project Gutenberg. Un tratto di 60 000 caratteri per lingua è <b>escluso dall'allenamento</b>: gli attacchi si provano su testo mai visto.
+        </p>
+        <div class="panel">
+          <h3>attacca un cifrato</h3>
+          <div class="field">
+            <label for="ca-text">testo cifrato</label>
+            <textarea id="ca-text" class="mn-box" spellcheck="false"></textarea>
+          </div>
+          <div class="row">
+            <label class="small" for="ca-lang" style="margin:0">lingua del corpus</label>
+            <select id="ca-lang" style="width:auto"><option value="it">italiano</option><option value="en">inglese</option></select>
+            <button class="ctl" id="ca-go" type="button">attacca</button>
+          </div>
+          <div id="ca-out" style="margin-top:10px"></div>
+        </div>
+
+        <h3>Funziona con testi di ogni lunghezza?</h3>
+        <p>
+          Per ogni lunghezza e lingua: 300 prove, ciascuna con una finestra casuale del testo di prova e una chiave casuale tra 1 e 25. «Successo» = chiave ritrovata. Con 300 prove l'incertezza è di circa $\pm5$ punti percentuali; per fare solo a caso il successo sarebbe $1/25=4\%$.
+        </p>
+        <div class="stat-grid">
+          <div class="stat-card"><h4>italiano</h4><canvas class="chart" id="ch-sw-it" style="height:230px"></canvas></div>
+          <div class="stat-card"><h4>inglese</h4><canvas class="chart" id="ch-sw-en" style="height:230px"></canvas></div>
+        </div>
+        <div id="sw-kv" class="kv"></div>
+
+        <h3>Quando fallisce o si indebolisce</h3>
+        <div id="lim-out"></div>
+
+        <h2 id="attacco-ec">Attacco allo schema su curva ellittica</h2>
+        <p>
+          Chi attacca vede $Q$ e sa che $d$ ha al più $b$ bit; non conosce $d$. A differenza di Cesare, qui la chiave giusta si riconosce con <b>esattezza</b>: basta controllare che $d\cdot G=Q$. Trovato $d$, ogni messaggio cifrato per $Q$ si decifra. Due modi di cercarla:
+        </p>
+        <ul>
+          <li><b>Ricerca esaustiva</b>: provo $d=1,2,3,\dots$ calcolando $G,2G,3G,\dots$ finché trovo $Q$. Al più $2^b$ passi.</li>
+          <li><b>Baby-step giant-step</b>: scrivo $d=i\cdot m+j$ con $m=\lceil\sqrt{2^b}\rceil$. Calcolo e memorizzo i «passi piccoli» $jG$ ($j<m$), poi faccio «passi grandi» $Q-i\cdot m\cdot G$ finché uno cade nella tabella: allora $d=i\,m\pm j$. Costo $\approx 2\sqrt{2^b}$ passi e $\sqrt{2^b}$ posti di memoria, invece di $2^b$.</li>
+        </ul>
+        <div class="panel">
+          <h3>attacca la chiave della sezione «schema»</h3>
+          <p class="small" id="at-info" style="margin-top:0">Genera prima le chiavi e cifra il messaggio nella sezione sopra.</p>
+          <div class="row">
+            <button class="ctl" id="at-exh" type="button">ricerca esaustiva</button>
+            <button class="ctl" id="at-bsgs" type="button">baby-step giant-step</button>
+            <button class="ctl" id="at-dec" type="button">decifra con la chiave trovata</button>
+            <span class="small" id="at-prog" style="margin:0"></span>
+          </div>
+          <div id="at-out" style="margin-top:10px"></div>
+        </div>
+
+        <h3>Quanto costa, misurato</h3>
+        <div class="stat-grid">
+          <div class="stat-card"><h4>passi necessari contro ampiezza della chiave</h4><canvas class="chart" id="ch-bm" style="height:230px"></canvas></div>
+          <div class="stat-card"><h4>tempo misurato</h4><div class="kv" id="bm-out">in attesa…</div></div>
+        </div>
+
+        <h3>Perché non funziona con una chiave vera</h3>
+        <p>Dai tempi misurati si stima il costo con chiavi più grandi (un passo costa circa <b id="ex-step">…</b> ms su questo computer; l'ultima colonna ipotizza $10^{12}$ passi al secondo):</p>
+        <div id="ex-out"></div>
+        <p>
+          Con una chiave a 256 bit la ricerca esaustiva richiede $2^{256}$ passi; la baby-step giant-step e i migliori attacchi noti ($\rho$ di Pollard, che non usa memoria) richiedono ancora circa $2^{128}$ passi, e la baby-step giant-step anche $2^{128}$ posti di memoria. Non è la statistica a proteggere lo schema, ma la <b>dimensione dello spazio</b>: il giocattolo con $b$ piccolo cade in secondi, con $b=256$ no.
+        </p>
+
+        <h3>I due attacchi a confronto</h3>
+        <table>
+          <thead><tr><th></th><th>statistico (Cesare)</th><th>sulla chiave piccola (curva ellittica)</th></tr></thead>
+          <tbody>
+            <tr><td>cosa serve all'attaccante</td><td>un cifrato abbastanza lungo e un corpus della lingua</td><td>solo $Q$ (pubblica) e il limite $b$: nemmeno un messaggio</td></tr>
+            <tr><td>come riconosce la chiave giusta</td><td>giudizio probabilistico («somiglia alla lingua»): può sbagliare</td><td>verifica esatta $dG=Q$: non sbaglia</td></tr>
+            <tr><td>dipende dalla lunghezza del testo?</td><td>sì: sotto una decina di lettere è inaffidabile</td><td>no</td></tr>
+            <tr><td>dipende dal contenuto?</td><td>sì: lingua, testi atipici, spazi</td><td>no</td></tr>
+            <tr><td>costo</td><td>26 prove</td><td>$2^b$ (esaustiva) o $\approx 2^{b/2}$ (baby-step giant-step)</td></tr>
+            <tr><td>che cosa lo ferma</td><td>niente: le chiavi sono 26</td><td>la dimensione dello spazio delle chiavi</td></tr>
+          </tbody>
+        </table>
+
+        <h3>Altre debolezze: chiave piccola o progetto?</h3>
+        <ul>
+          <li><b>Dovute alla chiave piccola</b>: ricerca esaustiva, baby-step giant-step, $\rho$ di Pollard (stesso costo $\sqrt{2^b}$, senza memoria). Si correggono usando una chiave di 256 bit.</li>
+          <li><b>Dovute al progetto del giocattolo</b>, presenti anche con una chiave grande:
+            <ul>
+              <li><b>$r$ piccola o prevedibile</b>: da $C_1=rG$ si recupera $r$ con gli stessi attacchi e si decifra con $S=rQ$ <i>senza conoscere $d$</i> (prova qui sotto).</li>
+              <li><b>$r$ riusata</b>: due messaggi con lo stesso flusso danno $c_1\oplus c_2=m_1\oplus m_2$, e il flusso sparisce.</li>
+              <li><b>Nessuna autenticazione</b>: cambiando un bit del cifrato cambia lo stesso bit del messaggio (malleabilità, prova qui sotto).</li>
+              <li><b>Derivazione fatta in casa</b>: l'hash usa solo $x_S$, senza legarlo a $C_1$ e $Q$ né separare i domini; ECIES vero usa una KDF standard e un MAC.</li>
+              <li>La lunghezza del messaggio si vede dal cifrato.</li>
+            </ul>
+          </li>
+        </ul>
+        <div class="panel">
+          <h3>due prove sul progetto (chiave privata da 256 bit, quindi sicura)</h3>
+          <div class="row">
+            <button class="ctl" id="wk-r" type="button">r piccola (24 bit): recupero r da C1 e decifro</button>
+            <button class="ctl" id="wk-flip" type="button">cambio un bit del cifrato</button>
+          </div>
+          <div id="wk-out" style="margin-top:10px"></div>
+        </div>
+
+        <h2 id="statistica">Esperimenti</h2>
+        <div class="run-row">
+          <button class="ctl" id="s-run" type="button">riesegui gli esperimenti</button>
+          <span id="s-status" aria-live="polite">in attesa…</span>
+        </div>
+        <p class="small">I grafici e le tabelle di questa pagina si calcolano da soli quando compaiono (circa 10 secondi in tutto).</p>
+
+        <h2 id="conclusioni">Conclusioni</h2>
+        <ul>
+          <li>Cesare e lo schema EC cifrano lo stesso messaggio, ma lasciano tracce opposte: Cesare conserva la distribuzione delle lettere (per questo cede ai metodi statistici), lo schema EC produce byte indistinguibili da casuali.</li>
+          <li>L'attacco a Cesare è <b>statistico</b>: sceglie tra 26 candidati e può sbagliare; migliora con la lunghezza del testo, i n-grammi battono le frequenze semplici e il picco è il più fragile.</li>
+          <li>L'attacco alla chiave piccola è <b>algebrico</b>: verifica esatta, indipendente dal messaggio, con costo fissato dalla dimensione dello spazio. Con $b=256$ è fuori portata anche per l'attacco migliore ($\approx 2^{128}$).</li>
+          <li>Un buon cifrario non si riconosce dalle statistiche del cifrato: quelle dello schema giocattolo sono perfette, eppure con $b$ piccolo si rompe in secondi, e con una chiave effimera piccola si rompe anche con $d$ grande.</li>
+        </ul>
+
+        <h2 id="codice">Codice</h2>
+        <p>
+          <a href="caesar.js">caesar.js</a> (cifrario, quattro giudici), <a href="ecies.js">ecies.js</a> (schema e attacchi), <a href="analysis3.js">analysis3.js</a> (esperimenti), <a href="corpus.js">corpus.js</a> (statistiche delle lingue, generato da <a href="build-corpus.js">build-corpus.js</a>).
+          secp256k1, SHA-256 e il test χ² sono quelli dell'homework 1.
+        </p>
+      </article>
+
+      <aside class="toc">
+        <p>In questa pagina</p>
+        <ol>
+          <li><a href="#consegna">Consegna</a></li>
+          <li><a href="#messaggio">Messaggio</a></li>
+          <li><a href="#ec">Schema su curva ellittica</a></li>
+          <li><a href="#cesare">Cifrario di Cesare</a></li>
+          <li><a href="#confronto">Confronto</a></li>
+          <li><a href="#cesare-attacco">Attacco a Cesare</a></li>
+          <li><a href="#attacco-ec">Attacco allo schema EC</a></li>
+          <li><a href="#statistica">Esperimenti</a></li>
+          <li><a href="#conclusioni">Conclusioni</a></li>
+        </ol>
+      </aside>
+    </div>
+
+    <nav class="pager" id="pager" data-id="hw3"></nav>
+  </main>
+
+  <footer class="site-footer">
+    <div class="wrap">
+      <span>© <span id="year"></span> Giuseppe Di Biase · Matricola 2334106</span>
+      <a href="../../">cd ~</a>
+    </div>
+  </footer>
+
+  <script src="../hw1/ec.js"></script>
+  <script src="../hw1/stats.js"></script>
+  <script src="../hw1/charts.js"></script>
+  <script src="corpus.js"></script>
+  <script src="caesar.js"></script>
+  <script src="ecies.js"></script>
+  <script src="analysis3.js"></script>
+  <script src="lines.js"></script>
+  <script src="ui.js"></script>
+  <script src="explore3.js"></script>
+</body>
+</html>

@@ -21,6 +21,14 @@ const HOMEWORK = [
     tags: ["BIP-39/32/44", "Keccak-256", "EIP-55"],
     status: "pubblicato",
   },
+  {
+    id: "hw3",
+    title: "Homework 3 · Cesare contro curva ellittica",
+    summary: "Cifrare e decifrare con Cesare e con uno schema giocattolo su secp256k1, poi attaccarli: statistica contro algebra.",
+    date: "2026-10-22",
+    tags: ["Cesare", "n-grammi", "chiave piccola"],
+    status: "pubblicato",
+  },
 ];
 
 /* ---------- Helpers ---------- */

@@ -1,0 +1,14 @@
+/* Stili aggiuntivi dell'homework 3, oltre a ../hw1/hw1.css e ../hw2/hw2.css. */
+.hexbox.scroll { max-height: 150px; overflow: auto; }
+.hexbox .hl { color: var(--bg); background: var(--accent); padding: 0 2px; }
+.hexbox .bad { color: #ff8a8a; }
+.res-table { width: 100%; border-collapse: collapse; font-family: var(--font-mono); font-size: 12.5px; margin: 6px 0; display: table; }
+.res-table th, .res-table td { padding: 5px 8px; border-bottom: 1px solid var(--border); text-align: left; vertical-align: top; text-transform: none; letter-spacing: 0; }
+.res-table th { color: var(--accent-dim); font-weight: 500; font-size: 11.5px; }
+.res-table td.num { text-align: right; white-space: nowrap; }
+.res-table td:first-child { color: var(--text); }
+.prose.wide table.res-table { display: table; }
+.ex-wrap { overflow-x: auto; }
+.mark-ok { color: var(--accent); }
+.mark-ko { color: #ff8a8a; }
+input[type=checkbox] { accent-color: var(--accent); vertical-align: -2px; margin-right: 6px; }
