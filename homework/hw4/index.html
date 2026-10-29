@@ -1,0 +1,217 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#050805">
+  <title>Homework 4 · Statistica</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;600&family=JetBrains+Mono:wght@400;500&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+  <!-- Formule LaTeX: $...$ in linea, $$...$$ a blocco -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"
+    onload="renderMathInElement(document.body,{delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}]})"></script>
+  <link rel="stylesheet" href="../../assets/style.css">
+  <link rel="stylesheet" href="../hw1/hw1.css">
+  <link rel="stylesheet" href="../hw2/hw2.css">
+  <link rel="stylesheet" href="../hw3/hw3.css">
+  <link rel="stylesheet" href="hw4.css">
+  <script src="../../assets/site.js"></script>
+</head>
+<body class="hw-wide">
+  <header class="site-header">
+    <div class="wrap">
+      <a class="brand" href="../../">statistica<span class="cursor">_</span></a>
+      <nav class="nav">
+        <a class="active" href="../../#homework">homework</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <header class="hw-header">
+      <div class="breadcrumb"><a href="../../#homework">cd ../ — tutti gli homework</a></div>
+      <p class="eyebrow">Homework 04 · 29 ottobre 2026</p>
+      <p class="student-line">Giuseppe Di Biase · Matricola <strong>2334106</strong> · LM-66 Cybersecurity</p>
+      <h1>n sistemi, m attaccanti: leggi dei grandi numeri e limite centrale</h1>
+      <p class="lead">
+        Il punteggio di penetrazione come somma di esiti indipendenti: tre normalizzazioni (somma, media, somma divisa per √n), la convergenza a una costante
+        e la convergenza a una normale, osservate su migliaia di traiettorie simulate.
+      </p>
+      <div class="hw-meta">
+        <a href="analysis4.js">analysis4.js · simulazione e statistiche</a>
+        <a href="plots.js">plots.js · grafici</a>
+      </div>
+    </header>
+
+    <div class="layout">
+      <article class="prose wide">
+
+        <h2 id="consegna">Consegna</h2>
+        <ul>
+          <li>Modellare la penetrazione di <b>n sistemi</b> da parte di <b>m attaccanti</b> con un processo stocastico a incrementi i.i.d. $X_1,X_2,\dots$ (il punteggio a ogni passo), in due versioni: <b>Bernoulli</b> ($X_i\in\{0,1\}$, $P(X_i=1)=p$) e <b>Rademacher</b> ($X_i\in\{-1,+1\}$ equiprobabili, caso simmetrico a media zero).</li>
+          <li>Al crescere di $n$ e con $m$ scelto in modo adeguato, simulare molte traiettorie e studiare le distribuzioni di: <b>totale</b> $S_n=\sum X_i$, <b>media</b> $S_n/n$, <b>totale normalizzato</b> $S_n/\sqrt n$.</li>
+          <li>Confrontarle: <b>convergenza in probabilità</b> di $S_n/n$ (legge dei grandi numeri), <b>varianza</b> sotto le diverse normalizzazioni, <b>convergenza in distribuzione</b> di $S_n/\sqrt n$ a una normale standard nel caso Rademacher (teorema del limite centrale).</li>
+          <li>Interpretare le traiettorie nel contesto n sistemi / m attaccanti: come dimensione del sistema e numero di attaccanti influenzano il punteggio aggregato.</li>
+        </ul>
+
+        <h2 id="modello">Il modello</h2>
+        <p>
+          Un attaccante attacca gli $n$ sistemi uno dopo l'altro: $X_i$ è l'esito sul sistema $i$ e $S_k=X_1+\dots+X_k$ è il punteggio dopo $k$ sistemi, cioè una <b>traiettoria</b>.
+          Gli esiti sono indipendenti e hanno la stessa distribuzione. Gli <b>$m$ attaccanti</b> sono $m$ traiettorie indipendenti: $m$ non cambia come va un singolo attaccante, serve a
+          <i>osservarne la distribuzione</i> (è la dimensione del campione), mentre $n$ è la dimensione del sistema e cambia la distribuzione stessa.
+        </p>
+        <ul>
+          <li><b>Bernoulli($p$)</b>: $X_i=1$ se il sistema $i$ viene penetrato (probabilità $p$), altrimenti 0. $S_n$ è il numero di sistemi penetrati su $n$: una binomiale $\mathrm{Bin}(n,p)$.</li>
+          <li><b>Rademacher</b>: $X_i=+1$ se il sistema cede, $-1$ se l'attacco è respinto, con probabilità $1/2$. $S_n$ è il <i>vantaggio netto</i> dell'attaccante: una passeggiata aleatoria simmetrica a media zero (un confronto alla pari).</li>
+        </ul>
+        <p>Con $\mu=E[X_i]$, $\sigma^2=\mathrm{Var}(X_i)$ ($\mu=p,\ \sigma^2=pq$ per Bernoulli con $q=1-p$; $\mu=0,\ \sigma^2=1$ per Rademacher) le tre quantità hanno:</p>
+        <table>
+          <thead><tr><th>quantità</th><th>media</th><th>varianza</th><th>che cosa aspettarsi</th></tr></thead>
+          <tbody>
+            <tr><td>$S_n$</td><td>$n\mu$</td><td>$n\sigma^2$</td><td>la media cresce come $n$, la dispersione come $\sqrt n$</td></tr>
+            <tr><td>$S_n/n$</td><td>$\mu$</td><td>$\sigma^2/n$</td><td>si concentra su $\mu$: legge dei grandi numeri</td></tr>
+            <tr><td>$S_n/\sqrt n$</td><td>$\sqrt n\,\mu$</td><td>$\sigma^2$</td><td>varianza costante; con $\mu=0$ tende a $N(0,\sigma^2)$: limite centrale</td></tr>
+          </tbody>
+        </table>
+        <p>
+          Per Bernoulli la media di $S_n/\sqrt n$ vale $\sqrt n\,p$ e diverge: la convergenza a una normale vale per la versione <b>centrata</b>
+          $Z_n=(S_n-n\mu)/(\sigma\sqrt n)$, che per Rademacher coincide con $S_n/\sqrt n$.
+        </p>
+
+        <h2 id="simulatore">Il simulatore</h2>
+        <div class="panel">
+          <div class="ctl-grid">
+            <div class="field">
+              <span class="lbl">modello</span>
+              <div class="seg">
+                <button class="ctl" id="mod-bern" type="button" aria-pressed="true">Bernoulli</button>
+                <button class="ctl" id="mod-rad" type="button" aria-pressed="false">Rademacher</button>
+              </div>
+            </div>
+            <div class="field">
+              <label for="p-range">probabilità di penetrare un sistema, p = <b id="p-out">0,30</b></label>
+              <input id="p-range" type="range" min="0.05" max="0.95" step="0.05" value="0.3">
+            </div>
+            <div class="field">
+              <label for="m-range">numero di attaccanti m = <b id="m-out">2000</b></label>
+              <input id="m-range" type="range" min="0" max="5" step="1" value="3">
+            </div>
+            <div class="field">
+              <label for="n-sel">numero massimo di sistemi n</label>
+              <select id="n-sel"><option value="1000">1000</option><option value="10000" selected>10000</option><option value="100000">100000</option></select>
+            </div>
+            <div class="field">
+              <label for="seed-in">seme del generatore</label>
+              <div class="row"><input id="seed-in" type="text" value="12345" style="max-width:110px"><button class="ctl" id="seed-new" type="button">nuovo</button></div>
+            </div>
+          </div>
+          <div class="row">
+            <button class="ctl" id="sim-go" type="button">simula</button>
+            <span class="small" id="sim-status" style="margin:0" aria-live="polite"></span>
+          </div>
+          <p class="small">Ogni attaccante attacca fino a $n$ sistemi; si registra il punteggio in circa 50 punti di controllo da 1 a $n$ (scala logaritmica). Con lo stesso seme la simulazione si ripete identica.</p>
+        </div>
+
+        <h3>Le traiettorie</h3>
+        <p>
+          Trenta attaccanti (linee verdi) scelti tra gli $m$, con la media di <i>tutti</i> (arancione) e il valore atteso (azzurro tratteggiato); la fascia azzurra è la banda teorica a $\pm2$ deviazioni standard.
+          Cambia la quantità e guarda che cosa succede alla fascia al crescere di $n$ (asse orizzontale lineare per il totale, logaritmico per le altre).
+        </p>
+        <div class="row q-tabs">
+          <div class="seg">
+            <button class="ctl" id="q-total" type="button" aria-pressed="true">totale S_k</button>
+            <button class="ctl" id="q-mean" type="button" aria-pressed="false">media S_k/k</button>
+            <button class="ctl" id="q-norm" type="button" aria-pressed="false">normalizzato S_k/√k</button>
+            <button class="ctl" id="q-std" type="button" aria-pressed="false">centrato (S_k−kμ)/(σ√k)</button>
+          </div>
+        </div>
+        <canvas class="chart-wide" id="ch-paths" style="height:330px"></canvas>
+        <div class="legend-note" id="paths-note"></div>
+
+        <h2 id="distribuzioni">Le tre distribuzioni al crescere di n</h2>
+        <p>
+          Istogrammi (densità) dei valori degli $m$ attaccanti a diversi $n$, con la curva teorica normale con la stessa media e varianza (azzurro).
+          Per Bernoulli compare anche la versione centrata $Z_n$.
+        </p>
+        <div id="hist-out"></div>
+        <h3>Media e varianza: simulate contro teoria</h3>
+        <div id="mom-out"></div>
+        <h3>La varianza sotto le tre normalizzazioni</h3>
+        <p>
+          Varianza empirica (punti) e teorica (tratteggio) in scala doppio-logaritmica: $\mathrm{Var}(S_n)=n\sigma^2$ cresce con pendenza $+1$,
+          $\mathrm{Var}(S_n/n)=\sigma^2/n$ cala con pendenza $-1$, $\mathrm{Var}(S_n/\sqrt n)=\sigma^2$ resta costante. Solo la divisione per $\sqrt n$ stabilizza la dispersione.
+        </p>
+        <canvas class="chart-wide" id="ch-var"></canvas>
+
+        <h2 id="lln">Legge dei grandi numeri</h2>
+        <p>
+          $S_n/n\to\mu$ <b>in probabilità</b> significa che, per ogni $\varepsilon>0$, $P(|S_n/n-\mu|>\varepsilon)\to0$. Qui si stima quella probabilità con la frazione degli $m$ attaccanti fuori dalla banda $\mu\pm\varepsilon$,
+          e la si confronta con i limiti teorici di <b>Chebyshev</b>, $\sigma^2/(n\varepsilon^2)$, e di <b>Hoeffding</b>, $2e^{-2n\varepsilon^2/(b-a)^2}$ ($b-a$ è l'ampiezza dell'intervallo dei valori di $X_i$: 1 per Bernoulli, 2 per Rademacher).
+        </p>
+        <div class="row" style="margin-bottom:6px">
+          <label class="small" for="eps-sel" style="margin:0">$\varepsilon$ dei limiti teorici</label>
+          <select id="eps-sel" style="width:auto"><option value="0.05">0,05</option><option value="0.1" selected>0,1</option><option value="0.2">0,2</option></select>
+        </div>
+        <canvas class="chart-wide" id="ch-lln"></canvas>
+        <div id="lln-out"></div>
+
+        <h2 id="clt">Teorema del limite centrale</h2>
+        <p>
+          $Z_n=(S_n-n\mu)/(\sigma\sqrt n)\to N(0,1)$ <b>in distribuzione</b>, cioè $\sup_x|F_n(x)-\Phi(x)|\to0$. Il grafico mostra la distanza di Kolmogorov–Smirnov (KS) tra la ripartizione di $Z_n$ e la normale standard:
+          misurata sul campione, esatta (calcolata con la binomiale) e il limite di <b>Berry–Esseen</b>, $0{,}4748\,\rho/(\sigma^3\sqrt n)$ con $\rho=E|X-\mu|^3$.
+          La linea arancione è il <b>rumore di campionamento</b>: con $m$ attaccanti la distanza misurata non può scendere sotto circa $1{,}36/\sqrt m$ (soglia del test KS al 5%).
+        </p>
+        <canvas class="chart-wide" id="ch-ks"></canvas>
+        <div class="legend-note" id="ks-note"></div>
+
+        <h2 id="interpretazione">Interpretazione: n sistemi e m attaccanti</h2>
+        <div id="interp-out"></div>
+
+        <h2 id="conclusioni">Conclusioni</h2>
+        <ul>
+          <li><b>Il totale cresce, la media si fissa, il normalizzato si stabilizza.</b> $S_n$ ha media $\propto n$ e dispersione $\propto\sqrt n$; $S_n/n$ converge alla costante $\mu$ con dispersione $\propto1/\sqrt n$; $S_n/\sqrt n$ ha dispersione costante.</li>
+          <li><b>LLN.</b> La probabilità di scostarsi da $\mu$ di più di $\varepsilon$ cala (esponenzialmente, secondo Hoeffding) al crescere di $n$; Chebyshev è corretto ma molto più largo.</li>
+          <li><b>CLT.</b> Il totale centrato e scalato di $\sqrt n$ ha forma normale già con poche centinaia di sistemi; la distanza dalla normale cala come $1/\sqrt n$ (Berry–Esseen), e per Rademacher vale esattamente circa $0{,}399/\sqrt n$ per effetto della natura discreta.</li>
+          <li><b>Sistemi e attaccanti.</b> Più sistemi ($n$) rendono il <i>tasso</i> di penetrazione di ogni attaccante più prevedibile (errore $\sigma/\sqrt n$) ma il <i>numero</i> assoluto di penetrazioni più imprevedibile (errore $\sigma\sqrt n$); più attaccanti ($m$) non cambiano la distribuzione di uno di loro, ma permettono di stimarla meglio e rendono l'aggregato più stabile (errore $\sigma/\sqrt{nm}$).</li>
+        </ul>
+
+        <h2 id="codice">Codice</h2>
+        <p>
+          <a href="analysis4.js">analysis4.js</a> (generatore con seme, simulazione, momenti, distanza KS esatta e limiti teorici), <a href="plots.js">plots.js</a> (grafici su canvas), <a href="ui4.js">ui4.js</a> (collegamento con la pagina).
+          La funzione di ripartizione della normale è l'approssimazione di Abramowitz–Stegun (errore $<1{,}5\cdot10^{-7}$).
+        </p>
+      </article>
+
+      <aside class="toc">
+        <p>In questa pagina</p>
+        <ol>
+          <li><a href="#consegna">Consegna</a></li>
+          <li><a href="#modello">Modello</a></li>
+          <li><a href="#simulatore">Simulatore</a></li>
+          <li><a href="#distribuzioni">Distribuzioni</a></li>
+          <li><a href="#lln">Grandi numeri</a></li>
+          <li><a href="#clt">Limite centrale</a></li>
+          <li><a href="#interpretazione">Interpretazione</a></li>
+          <li><a href="#conclusioni">Conclusioni</a></li>
+        </ol>
+      </aside>
+    </div>
+
+    <nav class="pager" id="pager" data-id="hw4"></nav>
+  </main>
+
+  <footer class="site-footer">
+    <div class="wrap">
+      <span>© <span id="year"></span> Giuseppe Di Biase · Matricola 2334106</span>
+      <a href="../../">cd ~</a>
+    </div>
+  </footer>
+
+  <script src="analysis4.js"></script>
+  <script src="plots.js"></script>
+  <script src="ui4.js"></script>
+</body>
+</html>

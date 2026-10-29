@@ -29,6 +29,14 @@ const HOMEWORK = [
     tags: ["Cesare", "n-grammi", "chiave piccola"],
     status: "pubblicato",
   },
+  {
+    id: "hw4",
+    title: "Homework 4 · n sistemi, m attaccanti",
+    summary: "Legge dei grandi numeri e teorema del limite centrale su punteggi Bernoulli e Rademacher, con migliaia di traiettorie simulate.",
+    date: "2026-10-29",
+    tags: ["LLN", "CLT", "simulazione"],
+    status: "pubblicato",
+  },
 ];
 
 /* ---------- Helpers ---------- */
