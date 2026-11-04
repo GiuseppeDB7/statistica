@@ -37,6 +37,14 @@ const HOMEWORK = [
     tags: ["LLN", "CLT", "simulazione"],
     status: "pubblicato",
   },
+  {
+    id: "hw5",
+    title: "Homework 5 · Welford e statistiche campionarie",
+    summary: "Ricorrenze di Welford per media e varianza in una passata, e confronto tra stime campionarie e valori teorici su m attaccanti.",
+    date: "2026-11-04",
+    tags: ["Welford", "stimatori", "simulazione"],
+    status: "pubblicato",
+  },
 ];
 
 /* ---------- Helpers ---------- */

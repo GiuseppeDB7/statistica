@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#050805">
+  <title>Homework 5 · Statistica</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;600&family=JetBrains+Mono:wght@400;500&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"
+    onload="renderMathInElement(document.body,{delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}]})"></script>
+  <link rel="stylesheet" href="../../assets/style.css">
+  <link rel="stylesheet" href="../hw1/hw1.css">
+  <link rel="stylesheet" href="../hw2/hw2.css">
+  <link rel="stylesheet" href="../hw3/hw3.css">
+  <link rel="stylesheet" href="../hw4/hw4.css">
+  <script src="../../assets/site.js"></script>
+</head>
+<body class="hw-wide">
+  <header class="site-header">
+    <div class="wrap">
+      <a class="brand" href="../../">statistica<span class="cursor">_</span></a>
+      <nav class="nav"><a class="active" href="../../#homework">homework</a></nav>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <header class="hw-header">
+      <div class="breadcrumb"><a href="../../#homework">cd ../ — tutti gli homework</a></div>
+      <p class="eyebrow">Homework 05 · 4 novembre 2026</p>
+      <p class="student-line">Giuseppe Di Biase · Matricola <strong>2334106</strong> · LM-66 Cybersecurity</p>
+      <h1>Welford, media e varianza campionarie</h1>
+      <p class="lead">Media e varianza calcolate in una sola passata, poi usate su m attaccanti con punteggi da 0 a 10 per vedere che cosa stimano e come migliorano al crescere di n.</p>
+      <div class="hw-meta"><a href="hw5.js">hw5.js · motore e interfaccia</a></div>
+    </header>
+
+    <article class="prose wide">
+      <h2 id="es1">Esercizio 1 · Ricorrenze di Welford</h2>
+      <p>Si vuole aggiornare media e somma dei quadrati degli scarti $SS_k=\sum_{i\le k}(x_i-\bar x_k)^2$ a ogni nuovo dato, senza rileggere i precedenti. Per la media (Knuth), con $\delta=x_k-\bar x_{k-1}$:</p>
+      $$\bar x_k=\bar x_{k-1}+\frac{\delta}{k}.$$
+      <p>Per $SS$ si parte da $SS_k=\sum x_i^2-k\bar x_k^2$. Sottraendo $SS_{k-1}$:</p>
+      $$SS_k-SS_{k-1}=x_k^2-k\bar x_k^2+(k-1)\bar x_{k-1}^2 .$$
+      <p>Poiché $(k-1)\bar x_{k-1}=k\bar x_k-x_k$, si ha $(k-1)\bar x_{k-1}^2=\bar x_{k-1}(k\bar x_k-x_k)$, quindi</p>
+      $$SS_k-SS_{k-1}=x_k(x_k-\bar x_{k-1})-k\bar x_k(\bar x_k-\bar x_{k-1})=x_k\delta-\bar x_k\delta .$$
+      <p>(si è usato $k(\bar x_k-\bar x_{k-1})=\delta$). Risultato:</p>
+      $$\boxed{SS_k=SS_{k-1}+\delta\,(x_k-\bar x_k)},\qquad s_k^2=\frac{SS_k}{k-1}.$$
+      <p>Il nucleo del codice sono tre righe:</p>
+      <pre class="code">let d = x - mean;          // scarto dalla media precedente
+mean += d / k;             // ricorrenza della media
+ss   += d * (x - mean);    // ricorrenza di SS; varianza = ss / (k - 1)</pre>
+      <p>Il vantaggio è la stabilità numerica: la formula "somma dei quadrati meno $n\bar x^2$" sottrae due numeri enormi quasi uguali e perde cifre. Prova:</p>
+      <div class="panel"><button class="ctl" id="w-go">rigenera 1000 dati</button><pre id="w-out" class="code"></pre></div>
+
+      <h2 id="es2">Esercizio 2 · Media e varianza campionarie</h2>
+      <p>Ogni attaccante ottiene un punteggio intero da 0 a 10 su ciascuno degli $n$ sistemi, estratto da una distribuzione fissata. Per ogni attaccante si calcolano con Welford media e varianza campionaria; poi si mediano su $m$ attaccanti e si confronta con i valori teorici: <b id="th"></b>.</p>
+      <div class="panel">
+        <div class="ctl-grid">
+          <label class="field">Distribuzione<select id="dist" class="ctl"><option value="binom">Binomiale(10; 0,4)</option><option value="unif">Uniforme su 0..10</option><option value="skew">A coda lunga</option></select></label>
+          <label class="field">Attaccanti m: <b id="m-v">2000</b><input type="range" id="m" min="200" max="5000" step="100" value="2000"></label>
+          <label class="field">Seme<input type="number" id="seed" class="ctl" value="42"></label>
+        </div>
+        <div id="tab" style="overflow-x:auto"></div>
+        <canvas id="c-sd" class="chart-wide"></canvas>
+        <div class="hist-grid" style="grid-template-columns:1fr 1fr">
+          <div class="hist-cell"><h5>medie campionarie, n = 10</h5><canvas id="h-a"></canvas></div>
+          <div class="hist-cell"><h5>medie campionarie, n = 100</h5><canvas id="h-b"></canvas></div>
+        </div>
+      </div>
+
+      <h3>Conclusioni</h3>
+      <ul>
+        <li><b>La media campionaria è non distorta:</b> la media delle medie coincide con $\mu$ per ogni $n$, anche piccolo.</li>
+        <li><b>La varianza con divisore $n-1$ è non distorta:</b> la media delle varianze coincide con $\sigma^2$. Con divisore $n$ si ottiene $\tfrac{n-1}{n}\sigma^2$, che sottostima (a $n=5$ di circa il 20%). Il motivo: gli scarti sono misurati dalla media del campione, che sta più vicina ai dati della vera $\mu$.</li>
+        <li><b>Utilità in inferenza:</b> da un solo campione si stimano $\mu$ e $\sigma^2$ ignote senza errore sistematico; su questo si fondano intervalli di confidenza e test.</li>
+        <li><b>Effetto di $n$:</b> la non distorsione non dipende da $n$, la variabilità sì. La deviazione standard delle medie scende come $\sigma/\sqrt n$; quella delle varianze scende anch'essa come $1/\sqrt n$ (pendenza $-1/2$ nel grafico log-log), ma dipende dal quarto momento. Più sistemi per attaccante significa stime più concentrate attorno al valore vero, e medie con forma sempre più normale (istogrammi).</li>
+      </ul>
+    </article>
+
+    <nav class="pager" id="pager" data-id="hw5"></nav>
+  </main>
+
+  <footer class="site-footer">
+    <div class="wrap">
+      <span>© <span id="year"></span> Giuseppe Di Biase · Matricola 2334106</span>
+      <a href="../../">cd ~</a>
+    </div>
+  </footer>
+
+  <script src="../hw4/plots.js"></script>
+  <script src="hw5.js"></script>
+</body>
+</html>
