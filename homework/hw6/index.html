@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#050805">
+  <title>Homework 6 · Statistica</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;600&family=JetBrains+Mono:wght@400;500&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"
+    onload="renderMathInElement(document.body,{delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}]})"></script>
+  <link rel="stylesheet" href="../../assets/style.css">
+  <link rel="stylesheet" href="../hw1/hw1.css">
+  <link rel="stylesheet" href="../hw2/hw2.css">
+  <link rel="stylesheet" href="../hw3/hw3.css">
+  <link rel="stylesheet" href="../hw4/hw4.css">
+  <script src="../../assets/site.js"></script>
+</head>
+<body class="hw-wide">
+  <header class="site-header">
+    <div class="wrap">
+      <a class="brand" href="../../">statistica<span class="cursor">_</span></a>
+      <nav class="nav"><a class="active" href="../../#homework">homework</a></nav>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <header class="hw-header">
+      <div class="breadcrumb"><a href="../../#homework">cd ../ — tutti gli homework</a></div>
+      <p class="eyebrow">Homework 06 · 11 novembre 2026</p>
+      <p class="student-line">Giuseppe Di Biase · Matricola <strong>2334106</strong> · LM-66 Cybersecurity</p>
+      <h1>Integrali di Riemann e Lebesgue, e la ripartizione normale</h1>
+      <p class="lead">Due modi di costruire un integrale a confronto, e il calcolo numerico di Φ(x), un integrale che non si scrive con funzioni elementari.</p>
+      <div class="hw-meta"><a href="hw6.js">hw6.js · motore e interfaccia</a></div>
+    </header>
+
+    <article class="prose wide">
+      <h2 id="es1">Esercizio 1 · Riemann e Lebesgue</h2>
+      <ul>
+        <li><b>Riemann</b>: si divide il <i>dominio</i> in $n$ sottointervalli e si somma $f(\xi_i)\,\Delta x$. Qui: punto medio ed estremo sinistro.</li>
+        <li><b>Lebesgue</b>: si divide l'<i>immagine</i> in $K$ livelli $y_i=ih$ e si somma $y_i\,\mu\{x:\,y_i\le f(x)<y_{i+1}\}$, cioè livello per misura della sua controimmagine. Equivale a $h\sum_{i\ge1}\mu\{f>y_i\}$ (somma inferiore).</li>
+      </ul>
+      <p>Per le funzioni scelte la misura $\mu\{f>t\}$ si ricava in forma chiusa (per $\sin x/x$ per bisezione, perché è decrescente): quindi il calcolo di Lebesgue è esatto nelle controimmagini e l'unico errore è la discretizzazione dei livelli. In generale è proprio la controimmagine la parte difficile.</p>
+      <div class="panel">
+        <label class="field">Funzione <select id="fun" class="ctl">
+          <option value="sin">sin x su [0, π]</option><option value="sq">x² su [0, 1]</option><option value="step">scalino 1 / 3 (salto in 0,5)</option><option value="abs">|x − 0,5|</option>
+          <option value="inv">1/√x su (0, 1] (illimitata)</option><option value="ind">scalino 1 / 0</option><option value="sinc">sin x / x su [0, π]</option></select></label>
+        <p class="legend-note" id="int-ex"></p>
+        <canvas id="c-int" class="chart-wide"></canvas>
+        <div id="int-tab" style="overflow-x:auto"></div>
+      </div>
+      <h3>Che cosa si osserva</h3>
+      <ul>
+        <li><b>Funzioni regolari</b>: Riemann (punto medio) ha errore $O(1/n^2)$, Lebesgue con livelli uniformi $O(1/K)$: i due convergono allo stesso valore, ma qui Riemann è molto più veloce. Il costo per punto è simile (Lebesgue valuta $\mu$ invece di $f$).</li>
+        <li><b>Funzioni a scalini</b>: Riemann sbaglia solo nell'intervallo che contiene il salto (errore $O(1/n)$); con $n$ pari i nodi cadono proprio su 0,5 e l'errore sparisce per coincidenza, per questo qui si usano $n$ dispari. Lebesgue guarda i <i>valori</i>, non la posizione del salto: è esatto non appena i livelli cadono sui valori assunti (per lo scalino 1/3 con $K$ multiplo di 3, per lo scalino 1/0 con qualunque $K$ perché $f\in\{0,1\}$ e i livelli passano da 1); con altri $K$ l'errore è $O(1/K)$, come per Riemann.</li>
+        <li><b>$1/\sqrt x$</b>: integrale improprio ($=2$). Riemann converge lentamente ($O(1/\sqrt n)$, il punto medio evita $x=0$; l'estremo sinistro non è calcolabile). Lebesgue con livelli fino a $\sqrt K$ converge anch'esso con errore $O(1/\sqrt K)$.</li>
+        <li><b>$\sin x/x$</b>: regolare dopo aver posto $f(0)=1$; vale $\mathrm{Si}(\pi)=1{,}85194\ldots$.</li>
+      </ul>
+
+      <h3>Funzioni patologiche</h3>
+      <ul>
+        <li><b>Dirichlet</b> ($1$ sui razionali, $0$ sugli irrazionali, su $[0,1]$): ogni sottointervallo contiene razionali e irrazionali, quindi la somma superiore di Riemann è sempre 1 e l'inferiore sempre 0: <i>non è Riemann-integrabile</i>. I razionali sono numerabili, quindi hanno misura 0: la controimmagine di $\{1\}$ ha misura 0 e l'integrale di Lebesgue vale <b>0</b>. Non si può calcolarla su un computer in modo sensato: ogni numero in virgola mobile è razionale, e un campionamento darebbe sempre 1.</li>
+        <li><b>Thomae</b> ($1/q$ su $p/q$ ridotto, 0 sugli irrazionali): è continua sugli irrazionali, quindi Riemann-integrabile con integrale 0. Somma inferiore sempre 0; la somma superiore (calcolata esattamente su $n$ parti uguali) tende a 0:</li>
+      </ul>
+      <div id="thomae" style="overflow-x:auto"></div>
+      <p>Qui i due approcci coincidono (0). La differenza vera si vede con Dirichlet: Lebesgue la integra, Riemann no.</p>
+
+      <h2 id="es2">Esercizio 2 · Calcolo numerico di Φ(x)</h2>
+      $$\Phi(x)=\int_{-\infty}^{x}\frac{e^{-t^2/2}}{\sqrt{2\pi}}\,dt=\frac12\Big[1+\operatorname{erf}\!\Big(\frac{x}{\sqrt2}\Big)\Big],\qquad \operatorname{erf}(z)=\frac{2}{\sqrt\pi}\int_0^z e^{-s^2}ds .$$
+      <h3>Perché non è elementare (Liouville)</h3>
+      <p>Una funzione è <i>elementare</i> se si ottiene da razionali, esponenziali, logaritmi e radici con somme, prodotti e composizioni. Teorema di Liouville: se $f,g$ sono razionali con $g$ non costante, $\int f\,e^{g}\,dx$ è elementare se e solo se esiste una funzione razionale $R$ con $R'+Rg'=f$ (e allora l'integrale vale $Re^{g}$). Per $e^{-x^2/2}$: $f=1$, $g=-x^2/2$, serve $R'-xR=1$. Un polo di ordine $k$ di $R$ in $a$ dà un polo di ordine $k+1$ in $R'$ e solo $k$ in $xR$: non si cancellano, quindi $R$ è un polinomio; ma se $\deg R=d$ allora $xR$ ha grado $d+1$ e $R'$ grado $d-1$, e il grado di $R'-xR$ è $d+1\ge1\ne0$. Nessuna soluzione: la primitiva non è elementare.</p>
+      <p>La funzione speciale <b>erf</b> si <i>definisce</i> proprio come questo integrale: dà una rappresentazione esatta di $\Phi$, ma è solo un nome. Per ottenere un numero serve comunque un metodo numerico.</p>
+
+      <h3>Metodi confrontati</h3>
+      <ul>
+        <li><b>Trapezi / Simpson</b> su $[0,x]$, poi $\Phi=\tfrac12+\int_0^x\varphi$ (errori $O(h^2)$ e $O(h^4)$).</li>
+        <li><b>Serie di Maclaurin di erf</b>: $\operatorname{erf}(z)=\frac2{\sqrt\pi}\sum_k\frac{(-1)^kz^{2k+1}}{k!(2k+1)}$. I segni alternati fanno perdere cifre per $z$ grande.</li>
+        <li><b>Abramowitz–Stegun 7.1.26</b>: approssimazione razionale di erf, veloce, errore assoluto $<1{,}5\cdot10^{-7}$.</li>
+        <li><b>Serie a termini positivi + frazione continua</b>: $\operatorname{erf}(z)=\frac{2}{\sqrt\pi}e^{-z^2}\sum_k\frac{2^kz^{2k+1}}{(2k+1)!!}$ (nessuna cancellazione) per $z<3$; per le code la frazione continua di erfc.</li>
+      </ul>
+      <p>Il riferimento sono valori a 16 cifre calcolati con la libreria matematica di Python (<code>math.erfc</code>), in accordo con le tavole normali standard (per esempio $\Phi(1{,}96)=0{,}975002\ldots$). Errori assoluti:</p>
+      <div class="panel">
+        <div id="cdf-tab" style="overflow-x:auto"></div>
+        <canvas id="c-conv" class="chart-wide"></canvas>
+        <div id="cdf-time" style="overflow-x:auto"></div>
+        <label class="field">Prova un valore di x <input id="x-in" class="ctl" value="1,96"></label>
+        <pre id="x-out" class="code"></pre>
+      </div>
+      <h3>Conclusioni</h3>
+      <ul>
+        <li>Trapezi e Simpson convergono con l'ordine atteso ($h^2$, $h^4$) ma costano centinaia di valutazioni di $\varphi$ per punto (con 100 suddivisioni Simpson arriva a circa $10^{-10}$; i trapezi con 1000 a circa $10^{-8}$).</li>
+        <li>La serie alternata è perfetta vicino a 0 e perde precisione al crescere di $|x|$ (a 5: $10^{-13}$) per cancellazione; la versione a termini positivi no.</li>
+        <li>Abramowitz–Stegun è la più veloce, ma ha errore assoluto $10^{-7}$ e, nelle code, errore relativo anche di 1 parte su mille ($\Phi(-5)$): inadatta per p-value minuscoli.</li>
+        <li>Serie positiva + frazione continua: errore relativo $\approx10^{-15}$ ovunque, con poche decine di operazioni. È il metodo da preferire.</li>
+      </ul>
+    </article>
+
+    <nav class="pager" id="pager" data-id="hw6"></nav>
+  </main>
+
+  <footer class="site-footer">
+    <div class="wrap">
+      <span>© <span id="year"></span> Giuseppe Di Biase · Matricola 2334106</span>
+      <a href="../../">cd ~</a>
+    </div>
+  </footer>
+
+  <script src="../hw4/plots.js"></script>
+  <script src="hw6.js"></script>
+</body>
+</html>

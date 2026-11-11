@@ -45,6 +45,14 @@ const HOMEWORK = [
     tags: ["Welford", "stimatori", "simulazione"],
     status: "pubblicato",
   },
+  {
+    id: "hw6",
+    title: "Homework 6 · Riemann, Lebesgue e ripartizione normale",
+    summary: "Integrali numerici secondo Riemann e Lebesgue, funzioni patologiche, e calcolo accurato di Φ(x) con confronto tra metodi.",
+    date: "2026-11-11",
+    tags: ["integrali", "Lebesgue", "normale"],
+    status: "pubblicato",
+  },
 ];
 
 /* ---------- Helpers ---------- */
