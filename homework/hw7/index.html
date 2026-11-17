@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#050805">
+  <title>Homework 7 · Statistica</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;600&family=JetBrains+Mono:wght@400;500&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"
+    onload="renderMathInElement(document.body,{delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}]})"></script>
+  <link rel="stylesheet" href="../../assets/style.css">
+  <link rel="stylesheet" href="../hw1/hw1.css">
+  <link rel="stylesheet" href="../hw2/hw2.css">
+  <link rel="stylesheet" href="../hw3/hw3.css">
+  <link rel="stylesheet" href="../hw4/hw4.css">
+  <script src="../../assets/site.js"></script>
+</head>
+<body class="hw-wide">
+  <header class="site-header">
+    <div class="wrap">
+      <a class="brand" href="../../">statistica<span class="cursor">_</span></a>
+      <nav class="nav"><a class="active" href="../../#homework">homework</a></nav>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <header class="hw-header">
+      <div class="breadcrumb"><a href="../../#homework">cd ../ — tutti gli homework</a></div>
+      <p class="eyebrow">Homework 07 · 17 novembre 2026</p>
+      <p class="student-line">Giuseppe Di Biase · Matricola <strong>2334106</strong> · LM-66 Cybersecurity</p>
+      <h1>Indipendenza statistica e test chi-quadro</h1>
+      <p class="lead">Da un dataset bivariato alla tabella di contingenza, alle frequenze attese sotto indipendenza, al χ² e al p-value, con l'interpretazione.</p>
+      <div class="hw-meta"><a href="hw7.js">hw7.js · motore e interfaccia</a></div>
+    </header>
+
+    <article class="prose wide">
+      <h2 id="teoria">Indipendenza: richiamo</h2>
+      <p>Due eventi $A,B$ sono <b>indipendenti</b> se $P(A\cap B)=P(A)P(B)$, cioè $P(A\mid B)=P(A)$: sapere $B$ non cambia la probabilità di $A$. Due variabili $X,F$ sono indipendenti se vale per ogni coppia di valori. In un dataset di $N$ osservazioni, con $O_{ij}$ le frequenze della cella $(i,j)$, totali di riga $R_i$ e di colonna $C_j$, l'indipendenza prevede
+      $$f_{ij}=f_{i\cdot}\,f_{\cdot j}\quad\Longrightarrow\quad E_{ij}=\frac{R_i\,C_j}{N}.$$
+      Equivalentemente le <b>frequenze condizionate</b> $f(F\mid X=x_i)$ sono uguali in ogni riga. La distanza tra osservato e atteso si misura con
+      $$\chi^2=\sum_{i,j}\frac{(O_{ij}-E_{ij})^2}{E_{ij}},\qquad \text{gradi di libertà } (r-1)(c-1).$$
+      Se l'indipendenza è vera, $\chi^2$ si distribuisce approssimativamente come una $\chi^2_{(r-1)(c-1)}$ (se tutti gli $E_{ij}\ge5$). Il <b>p-value</b> è $P(\chi^2_{df}\ge\chi^2_{\rm oss})$, calcolato con la funzione gamma incompleta regolarizzata: $p=Q(df/2,\chi^2/2)$. Si rifiuta l'indipendenza se $p<\alpha$. Come misura dell'intensità si usa la $V$ di Cramér, $V=\sqrt{\chi^2/(N\min(r-1,c-1))}$.</p>
+
+      <h2 id="strumento">Strumento</h2>
+      <div class="panel">
+        <div class="ctl-grid">
+          <label class="field">Dataset <select id="ds" class="ctl">
+            <option value="hair">Capelli × occhi (reale)</option>
+            <option value="os">Sistema operativo × esito (sintetico, dipendente)</option>
+            <option value="geo">Provenienza × esito (sintetico, indipendente)</option></select></label>
+          <label class="field">Soglia α: <b id="alpha-v">0.05</b><input type="range" id="alpha" min="0.01" max="0.10" step="0.01" value="0.05"></label>
+        </div>
+        <details><summary>Usa i tuoi dati (una coppia «x,f» per riga)</summary>
+          <textarea id="raw" rows="8" style="width:100%;font-family:var(--font-mono)"></textarea>
+          <button class="ctl" id="use-raw">calcola su questi dati</button>
+        </details>
+        <div id="out"></div>
+      </div>
+
+      <h2 id="interpretazione">Interpretazione</h2>
+      <ul>
+        <li><b>Capelli × occhi</b>: $\chi^2=138{,}3$ con 9 gradi di libertà, $p\approx2\cdot10^{-25}$, $V=0{,}28$. Le variabili sono dipendenti, con associazione debole-moderata: i biondi hanno molti più occhi azzurri di quanto atteso, i capelli neri più occhi castani.</li>
+        <li><b>Sistema × esito (sintetico)</b>: $\chi^2=13{,}1$, 2 g.d.l., $p=0{,}0014$: dipendenza significativa ma $V=0{,}11$, intensità debole. Con tanti dati anche un effetto piccolo diventa significativo: p-value piccolo non vuol dire effetto grande.</li>
+        <li><b>Provenienza × esito (sintetico)</b>: $\chi^2=0{,}70$, $p=0{,}71$: nessuna evidenza di dipendenza. È coerente con come i dati sono stati generati; non <i>dimostra</i> l'indipendenza, dice solo che i dati non la contraddicono.</li>
+      </ul>
+
+      <h2 id="causalita">Associazione e causalità</h2>
+      <ul>
+        <li>Il test dice se c'è un'<b>associazione</b> (le variabili non sono indipendenti), non perché. Dipendenza statistica non implica che $X$ causi $F$.</li>
+        <li>Possibili spiegazioni di un'associazione: $X$ causa $F$; $F$ causa $X$; una terza variabile (<i>confondente</i>) influenza entrambe; il caso o la scelta del campione.</li>
+        <li>Esempio dai dati sintetici: se i sistemi Windows risultano più compromessi, non è provato che «Windows» sia la causa: potrebbero essere più diffusi, più esposti, o con più utenti non esperti (variabili confondenti).</li>
+        <li>Il test chi-quadro usa solo la tabella: non rileva la direzione, non controlla i confondenti, e il suo risultato può invertirsi se si divide il campione in sottogruppi (paradosso di Simpson). Per stabilire la causalità servono esperimenti controllati o modelli causali.</li>
+      </ul>
+    </article>
+
+    <nav class="pager" id="pager" data-id="hw7"></nav>
+  </main>
+
+  <footer class="site-footer">
+    <div class="wrap">
+      <span>© <span id="year"></span> Giuseppe Di Biase · Matricola 2334106</span>
+      <a href="../../">cd ~</a>
+    </div>
+  </footer>
+
+  <script src="hw7.js"></script>
+</body>
+</html>

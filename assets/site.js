@@ -53,6 +53,14 @@ const HOMEWORK = [
     tags: ["integrali", "Lebesgue", "normale"],
     status: "pubblicato",
   },
+  {
+    id: "hw7",
+    title: "Homework 7 · Indipendenza e test chi-quadro",
+    summary: "Tabella di contingenza, frequenze attese sotto indipendenza, χ² e p-value su dati reali e sintetici, con la differenza tra associazione e causalità.",
+    date: "2026-11-17",
+    tags: ["chi-quadro", "indipendenza", "contingenza"],
+    status: "pubblicato",
+  },
 ];
 
 /* ---------- Helpers ---------- */
