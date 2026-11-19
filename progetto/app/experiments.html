@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mining experiments</title>
+  <style>
+    .setup { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 1.5rem; align-items: end; }
+    @media (max-width: 950px) { .setup { grid-template-columns: 1fr; } }
+    .setup input[type="number"] { width: 6rem; }
+    .actions { display: flex; gap: 0.6rem; flex-wrap: wrap; }
+    .progress-line { display: flex; align-items: baseline; gap: 1rem; margin-top: 1.1rem; }
+    #status { margin: 0; font-style: italic; min-width: 12rem; }
+    .progress { flex: 1; height: 10px; border: 1px solid var(--ink); background: var(--paper); }
+    .progress > div { height: 100%; width: 0; background: var(--ink); transition: width 0.2s ease; }
+    .figures { margin: 1.4rem 0; background: var(--paper-2); }
+
+    #summary td.d { font-family: var(--mono); font-weight: 600; font-size: 1.05rem; }
+    #summary td { font-family: var(--mono); }
+    #summary td.ratio { font-weight: 600; }
+    #summary td.ratio.good { color: var(--green); }
+    #summary td.ratio.off { color: var(--ochre); }
+    #summary td.ratio i { display: inline-block; height: 0.55rem; background: currentColor; margin-left: 0.4rem; vertical-align: middle; opacity: 0.55; }
+
+    #plot { width: 100%; height: auto; display: block; }
+    #plot .grid line { stroke: var(--rule); stroke-width: 1; }
+    #plot .axis { stroke: var(--ink); stroke-width: 1.5; }
+    #plot text { fill: var(--muted); font-size: 13px; font-family: var(--mono); }
+    #plot text.title { font-family: var(--serif); font-style: italic; font-size: 14px; }
+    #plot .ref { stroke: var(--muted); stroke-dasharray: 6 5; stroke-width: 1.5; fill: none; }
+    #plot .obs { stroke: var(--green); stroke-width: 2.5; fill: none; }
+    #plot circle { fill: var(--paper-2); stroke: var(--green); stroke-width: 2.5; }
+    .legend { display: flex; gap: 1.4rem; color: var(--muted); font-style: italic; font-size: 0.95rem; margin-top: 0.4rem; }
+    .legend i { display: inline-block; width: 24px; border-top: 2.5px solid var(--green); vertical-align: middle; margin-right: 0.4rem; }
+    .legend i.ref { border-top: 1.5px dashed var(--muted); }
+  </style>
+  <script type="module" crossorigin src="./assets/experiments-D5fLmKai.js"></script>
+  <link rel="modulepreload" crossorigin href="./assets/style-CBx2tgDW.js">
+  <link rel="stylesheet" crossorigin href="./assets/style-DrFQzqSU.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">Teaching Ledger<small>a distributed ledger in the browser</small></div>
+    <nav>
+      <a href="./index.html">Node</a>
+      <a href="./experiments.html" aria-current="page">Mining experiments</a>
+      <a href="./tamper.html">Tampering</a>
+      <a href="./animation.html" target="_blank" rel="noopener" title="opens in a new window, to place next to the nodes" style="margin-left: 2.5rem; font-style: italic">Animation ↗</a>
+    </nav>
+  </header>
+
+  <main>
+    <div class="page-head">
+      <div class="grow">
+        <div class="kicker">Part 1 · proof of work</div>
+        <h1 class="page-title">Mining experiments</h1>
+        <p class="page-sub">How many attempts does it take to find a hash with d leading zero bits? The expected value is 2<sup>d</sup>. Keep this tab in the foreground while collecting.</p>
+      </div>
+    </div>
+
+    <section class="sheet">
+      <h2 class="sheet-title">Collection settings</h2>
+      <div class="setup">
+        <div class="row">
+          <label class="field">hash function
+            <select id="impl"><option value="js">JS (synchronous)</option><option value="native">Native (crypto.subtle)</option></select>
+          </label>
+          <label class="field">minimum d <input id="dmin" type="number" value="4" min="1" max="24"></label>
+          <label class="field">maximum d <input id="dmax" type="number" value="18" min="1" max="24"></label>
+          <label class="field">trials per level <input id="trials" type="number" placeholder="auto" min="1"></label>
+        </div>
+        <div class="actions">
+          <button id="start" class="go">▶ Start</button>
+          <button id="stop" class="danger" disabled>■ Stop</button>
+          <button id="csv" disabled>Download mining.csv</button>
+        </div>
+      </div>
+      <div class="progress-line"><p id="status">Ready.</p><div class="progress"><div id="bar"></div></div></div>
+    </section>
+
+    <section class="figures" aria-label="key figures">
+      <div class="figure hero" id="fig-ratio"><div class="label">Observed mean / expected 2<sup>d</sup></div><div class="value" id="ratio-all">—</div><div class="detail">mean of the ratios over completed levels; 1 = perfect agreement</div></div>
+      <div class="figure"><div class="label">Trials collected</div><div class="value" id="n-rows">0</div><div class="detail" id="n-levels">no levels yet</div></div>
+      <div class="figure"><div class="label">Hardest level</div><div class="value" id="max-d">—</div><div class="detail" id="max-d-detail">zero bits required</div></div>
+      <div class="figure"><div class="label">Hash rate</div><div class="value" id="speed">—</div><div class="detail">thousand attempts per second</div></div>
+    </section>
+
+    <div class="grid grid-2">
+      <section class="sheet">
+        <h2 class="sheet-title">Summary by difficulty</h2>
+        <table id="summary"><thead><tr><th>d</th><th class="r">trials</th><th class="r">mean attempts</th><th class="r">expected 2^d</th><th>mean / 2^d</th><th class="r">mean ms</th></tr></thead><tbody></tbody></table>
+      </section>
+      <section class="sheet">
+        <h2 class="sheet-title">Mean attempts vs 2ᵈ <span class="note">log₂ scale</span></h2>
+        <svg id="plot" viewBox="0 0 560 340" role="img" aria-label="log2 of the mean number of attempts as a function of d"></svg>
+        <div class="legend"><span><i></i>observed: log₂(mean attempts)</span><span><i class="ref"></i>expected: d</span></div>
+      </section>
+    </div>
+  </main>
+
+</body>
+</html>

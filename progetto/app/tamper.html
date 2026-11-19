@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Tampering with a block</title>
+    <style>
+      /* procedura in tre passi */
+      .steps { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)) auto; gap: 0; border-top: 3px double var(--ink); border-bottom: 1px solid var(--ink); background: var(--paper-2); margin-bottom: 1.4rem; }
+      .step { padding: 0.9rem 1.1rem; border-right: 1px solid var(--rule); display: flex; flex-direction: column; gap: 0.5rem; }
+      .step .n { font-family: var(--mono); font-weight: 600; font-size: 1.8rem; line-height: 1; color: var(--rule); }
+      .step.done .n { color: var(--green); }
+      .step.current .n { color: var(--red); }
+      .step p { margin: 0; color: var(--muted); font-style: italic; font-size: 0.95rem; }
+      .step button { align-self: flex-start; font-size: 1.05rem; white-space: nowrap; }
+      .reset { padding: 0.9rem 1.1rem; display: flex; align-items: center; }
+      @media (max-width: 1050px) { .steps { grid-template-columns: 1fr; } .step { border-right: none; border-bottom: 1px solid var(--rule); } }
+
+      /* verdetto */
+      .figures { background: var(--paper-2); }
+      #status { font-family: var(--serif); font-variant: small-caps; font-size: 2.6rem; }
+      #status.valid { color: var(--green); }
+      #status.invalid { color: var(--red); animation: shake 0.4s ease; }
+      #status.valid::before { content: '✓ '; }
+      #status.invalid::before { content: '✗ '; }
+      #message { margin: 0.8rem 0 1.4rem; font-style: italic; font-size: 1.15rem; padding-left: 0.9rem; border-left: 3px solid var(--ink); }
+
+      /* catena orizzontale */
+      #chain { list-style: none; margin: 0; padding: 0.3rem 0 0.4rem; display: flex; overflow-x: auto; align-items: stretch; }
+      #chain li { display: flex; align-items: stretch; flex: 1 1 0; min-width: 11.5rem; }
+      #chain li:first-child { flex-grow: 0.85; min-width: 9.8rem; }
+      .link { width: 2.2rem; flex: none; display: grid; place-items: center; font-size: 1.4rem; color: var(--green); }
+      .link.broken { color: var(--red); font-size: 1.6rem; }
+      .blk { flex: 1; min-width: 0; background: var(--paper); border: 1.5px solid var(--ink); border-top: 6px solid var(--green); padding: 0.6rem 0.75rem; display: flex; flex-direction: column; gap: 0.35rem; font-size: 0.9rem; }
+      .blk.invalid { border-color: var(--red); border-top-color: var(--red); background: var(--red-bg); animation: shake 0.4s ease; }
+      .blk.tampered { outline: 3px dashed var(--ochre); outline-offset: 3px; }
+      .blk header { display: flex; justify-content: space-between; align-items: baseline; font-weight: 700; font-size: 1.15rem; }
+      .blk header span:first-child { white-space: nowrap; }
+      .badge { font-size: 1.2rem; color: var(--green); }
+      .blk.invalid .badge { color: var(--red); }
+      .blk .k { color: var(--muted); font-style: italic; font-size: 0.85rem; }
+      .blk .tx { font-family: var(--mono); }
+      .blk .amount-hot { color: var(--ochre); font-weight: 600; background: var(--ochre-bg); padding: 0 0.2rem; }
+      .blk .reason { color: var(--red); font-weight: 700; border-top: 1px solid var(--red); padding-top: 0.3rem; }
+      @keyframes shake { 0%,100% { transform: none; } 25% { transform: translateX(-4px); } 75% { transform: translateX(4px); } }
+
+      /* probabilità di attacco */
+      .odds-wrap { display: grid; grid-template-columns: minmax(280px, 1fr) minmax(0, 1.5fr); gap: 2rem; align-items: end; }
+      @media (max-width: 950px) { .odds-wrap { grid-template-columns: 1fr; } }
+      .qline { display: flex; align-items: baseline; gap: 0.6rem; font-style: italic; color: var(--muted); }
+      .qline strong { font-family: var(--mono); font-style: normal; font-size: 2.2rem; color: var(--ink); }
+      #odds { margin: 1rem 0 0; }
+      #odds .p { display: block; font-family: var(--mono); font-weight: 600; font-size: 3.4rem; line-height: 1.05; color: var(--red); }
+      #odds .lead { color: var(--muted); font-style: italic; }
+      .bars { display: flex; align-items: flex-end; gap: 0.45rem; height: 12rem; border-bottom: 1.5px solid var(--ink); padding-top: 1.4rem; }
+      .bar { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; height: 100%; gap: 0.2rem; }
+      .bar .fill { width: 100%; background: repeating-linear-gradient(45deg, var(--rule) 0 2px, transparent 2px 6px); border: 1px solid var(--muted); min-height: 2px; transition: height 0.25s ease; }
+      .bar.cur .fill { background: var(--red); border-color: var(--red); }
+      .bar .v { font-family: var(--mono); font-size: 0.72rem; color: var(--muted); }
+      .bar.cur .v { color: var(--red); font-weight: 600; }
+      .zaxis { display: flex; gap: 0.45rem; margin-top: 0.25rem; }
+      .zaxis span { flex: 1; text-align: center; font-family: var(--mono); font-size: 0.8rem; color: var(--muted); }
+      .zaxis span.cur { color: var(--red); font-weight: 600; }
+      .axis-note { color: var(--muted); font-style: italic; font-size: 0.9rem; margin-top: 0.5rem; }
+    </style>
+    <script type="module" crossorigin src="./assets/tamper-BQye0X1G.js"></script>
+    <link rel="modulepreload" crossorigin href="./assets/style-CBx2tgDW.js">
+    <link rel="modulepreload" crossorigin href="./assets/chain-DWb98O75.js">
+    <link rel="modulepreload" crossorigin href="./assets/attack-D0IlQPvx.js">
+    <link rel="stylesheet" crossorigin href="./assets/style-DrFQzqSU.css">
+  </head>
+  <body>
+    <!-- Demo della Parte 3: aprire con `npm run dev`, poi /tamper.html -->
+    <header class="topbar">
+      <div class="brand">Teaching Ledger<small>a distributed ledger in the browser</small></div>
+      <nav>
+        <a href="./index.html">Node</a>
+        <a href="./experiments.html">Mining experiments</a>
+        <a href="./tamper.html" aria-current="page">Tampering</a>
+        <a href="./animation.html" target="_blank" rel="noopener" title="opens in a new window, to place next to the nodes" style="margin-left: 2.5rem; font-style: italic">Animation ↗</a>
+      </nav>
+    </header>
+
+    <main>
+      <div class="page-head">
+        <div class="grow">
+          <div class="kicker">Part 3 · chain security</div>
+          <h1 class="page-title">Tampering with an accepted block</h1>
+          <p class="page-sub">Changing confirmed data breaks the hashes: to repair them the attacker must redo all the proof of work that follows.</p>
+        </div>
+      </div>
+
+      <section class="steps" aria-label="procedure">
+        <div class="step" id="step-1"><span class="n">I</span><button id="tamper" class="danger">Edit the transaction in block 2</button><p>the amount becomes 1000: the hash no longer matches</p></div>
+        <div class="step" id="step-2"><span class="n">II</span><button id="remineOne" class="primary">Re-mine block 2</button><p>the block is valid again, but the next one points to the old hash</p></div>
+        <div class="step" id="step-3"><span class="n">III</span><button id="remineAll" class="primary">Re-mine the following blocks</button><p>the chain is valid again, at the cost of all the work redone</p></div>
+        <div class="reset"><button id="reset">↺ Start over</button></div>
+      </section>
+
+      <section class="figures" aria-label="outcome">
+        <div class="figure hero"><div class="label">Chain status</div><div class="value" id="status"></div></div>
+        <div class="figure" id="fig-bad"><div class="label">Invalid blocks</div><div class="value" id="bad-count"></div><div class="detail">out of <span id="n-blocks"></span> blocks</div></div>
+        <div class="figure"><div class="label">Attempts spent by the attacker</div><div class="value" id="tries-count"></div><div class="detail">hashes computed to re-mine</div></div>
+      </section>
+      <p id="message"></p>
+
+      <section class="sheet">
+        <h2 class="sheet-title">The chain <span class="note">each block contains the hash of the previous one</span></h2>
+        <ol id="chain"></ol>
+      </section>
+
+      <section class="sheet" style="margin-top:1.4rem">
+        <h2 class="sheet-title">How likely is the attack to succeed? <span class="note">Nakamoto's formula</span></h2>
+        <div class="odds-wrap">
+          <div>
+            <div class="qline">attacker's share of hash power q = <strong id="qValue"></strong></div>
+            <input id="q" type="range" min="0.05" max="0.45" step="0.05" value="0.25" aria-label="attacker's share of hash power q" />
+            <p id="odds"></p>
+          </div>
+          <div>
+            <div class="bars" id="odds-bars"></div>
+            <div class="zaxis" id="odds-axis"></div>
+            <div class="axis-note">Probability of catching up with the honest network with z blocks to redo, at the same q. In red, the z of this demo.</div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </body>
+</html>
