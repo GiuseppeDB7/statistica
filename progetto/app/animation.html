@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Ledger animation</title>
+    <style>
+      /* Pagina per l'esposizione: tutta l'altezza dello schermo, testo grande. */
+      html, body { height: 100%; }
+      body { display: flex; flex-direction: column; background-image: none; }
+      .topbar { padding: 0.5rem 1.6rem 0.4rem; }
+      .player { flex: 1; display: flex; flex-direction: column; min-height: 0; padding: 0.6rem 1.6rem 0.8rem; gap: 0.5rem; }
+      .scenes { display: flex; gap: 0.4rem; flex-wrap: wrap; align-items: center; }
+      .scenes button { font-weight: 400; padding: 0.3rem 0.8rem; font-size: 1rem; }
+      .scenes button .n { font-family: var(--mono); font-weight: 600; color: var(--muted); }
+      .scenes button[aria-current="step"] { background: var(--ink); color: var(--paper-2); }
+      .scenes button[aria-current="step"] .n { color: var(--paper-3); }
+      #scene-title { margin-left: auto; font-variant: small-caps; font-weight: 700; color: var(--red); letter-spacing: 0.04em; font-size: 1.1rem; }
+      .canvas { flex: 1; min-height: 0; background: var(--paper-2); border: 1px solid var(--rule); border-left: 4px double var(--red); }
+      .canvas svg { width: 100%; height: 100%; display: block; }
+      #stage text { font-family: var(--serif); fill: var(--ink); }
+      #stage text.m { font-family: var(--mono); }
+      #stage text.it { font-style: italic; }
+      #caption { min-height: 2.6em; margin: 0; font-size: 1.75rem; line-height: 1.3; padding-left: 0.9rem; border-left: 4px solid var(--ink); }
+      #caption.in { animation: cap 0.5s ease; }
+      @keyframes cap { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+      .controls { display: flex; gap: 0.6rem; align-items: center; flex-wrap: wrap; }
+      .controls button { font-size: 1.05rem; }
+      #play { min-width: 9.5rem; }
+      #scrub { flex: 1; min-width: 12rem; }
+      .controls label { display: flex; gap: 0.4rem; align-items: center; }
+      .keys { color: var(--muted); font-style: italic; font-size: 0.9rem; }
+    </style>
+    <script type="module" crossorigin src="./assets/animation-DLQkZNrz.js"></script>
+    <link rel="modulepreload" crossorigin href="./assets/style-CBx2tgDW.js">
+    <link rel="modulepreload" crossorigin href="./assets/chain-DWb98O75.js">
+    <link rel="modulepreload" crossorigin href="./assets/attack-D0IlQPvx.js">
+    <link rel="stylesheet" crossorigin href="./assets/style-DrFQzqSU.css">
+  </head>
+  <body>
+    <!-- Animazione didattica per l'esposizione: aprire con `npm run dev`, poi /animation.html
+         in una finestra a parte, accanto alle tab dei nodi. Usa chain.js, crypto.js e attack.js in sola lettura. -->
+    <header class="topbar">
+      <div class="brand">Teaching Ledger<small>animation for the talk</small></div>
+      <nav>
+        <a href="./index.html">Node</a>
+        <a href="./experiments.html">Mining experiments</a>
+        <a href="./tamper.html">Tampering</a>
+        <a href="./animation.html" aria-current="page" style="margin-left: 2.5rem; font-style: italic">Animation</a>
+      </nav>
+    </header>
+
+    <div class="player">
+      <div class="scenes"><div id="scene-btns" class="scenes"></div><span id="scene-title"></span></div>
+      <div class="canvas"><svg viewBox="0 0 1600 800" preserveAspectRatio="xMidYMid meet" role="img" aria-label="animation"><g id="stage"></g></svg></div>
+      <p id="caption" aria-live="polite"></p>
+      <div class="controls">
+        <button id="prev" type="button" title="previous step (←)">◀ Back</button>
+        <button id="play" type="button" class="go" title="play or pause (space)"></button>
+        <button id="next" type="button" class="primary" title="play the next step (→)">Next ▶</button>
+        <input id="scrub" type="range" min="0" step="0.01" value="0" aria-label="position" />
+        <label>speed
+          <select id="speed">
+            <option value="0.5">0.5×</option>
+            <option value="1" selected>1×</option>
+            <option value="1.5">1.5×</option>
+            <option value="2">2×</option>
+          </select>
+        </label>
+        <button id="fullscreen" type="button" title="full screen (F)">⛶</button>
+        <span class="keys">← → steps · space play · 1–5 scenes · F full screen</span>
+      </div>
+    </div>
+
+  </body>
+</html>

@@ -1,0 +1,1 @@
+function c(t,e){s(t);const o=1-t;if(t>=o)return 1;const r=e*t/o;let a=0,i=Math.exp(-r);for(let n=0;n<=e;n++)n>0&&(i*=r/n),a+=i*(1-Math.pow(t/o,e-n));return 1-a}function s(t){if(!(t>=0&&t<=1))throw new RangeError("q deve stare in [0, 1]")}export{c as n};

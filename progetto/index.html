@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#050805">
+  <title>Progetto · The Decentralized Ledger · Statistica</title>
+  <meta name="description" content="Progetto di gruppo di Statistica: prototipo di blockchain nel browser e statistiche del mining, della rete e dell'attacco.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;600&family=JetBrains+Mono:wght@400;500&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"
+    onload="renderMathInElement(document.body,{delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}]})"></script>
+  <link rel="stylesheet" href="../assets/style.css">
+  <script src="../assets/site.js"></script>
+  <style>
+    .launch { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin: 16px 0 8px; }
+    .launch a { display: block; border: 1px solid var(--border-strong); padding: 14px 16px; color: var(--text); font-family: var(--font-sans); }
+    .launch a:hover { border-color: var(--accent); background: var(--accent-soft); text-shadow: none; }
+    .launch b { display: block; font-family: var(--font-mono); font-weight: 500; color: var(--accent); margin-bottom: 4px; }
+    .launch b::after { content: " ↗"; color: var(--text-faint); }
+    .launch span { font-size: 14px; color: var(--text-soft); line-height: 1.5; display: block; }
+    .kpi { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin: 16px 0; }
+    .kpi div { border: 1px solid var(--border-strong); padding: 12px 14px; }
+    .kpi strong { display: block; font-family: var(--font-mono); font-size: 22px; font-weight: 500; color: var(--accent); }
+    .kpi small { font-size: 12px; color: var(--text-soft); line-height: 1.4; display: block; }
+    @media (max-width: 720px) { .kpi { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+    @media (max-width: 560px) { .launch { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <div class="wrap">
+      <a class="brand" href="../">statistica<span class="cursor">_</span></a>
+      <nav class="nav">
+        <a href="../#homework">homework</a>
+        <a class="active" href="./">progetto</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <header class="hw-header">
+      <div class="breadcrumb"><a href="../">cd ../ — home</a></div>
+      <p class="eyebrow">Progetto di gruppo 2 · novembre 2026</p>
+      <p class="student-line">Giuseppe Di Biase · Matricola <strong>2334106</strong> · LM-66 Cybersecurity</p>
+      <h1>The Decentralized Ledger</h1>
+      <p class="lead">Un prototipo didattico di blockchain che gira interamente nel browser, e la statistica che c'è dietro: quanto costa minare un blocco, cosa succede quando più nodi competono, quanto è probabile riscrivere la storia.</p>
+      <div class="hw-meta">
+        <a href="docs/slides.pdf">slides.pdf · presentazione (EN)</a>
+      </div>
+    </header>
+
+    <div class="layout">
+      <article class="prose">
+        <h2 id="prototipo">Prototipo</h2>
+        <p>Nessun backend: ogni scheda del browser è un nodo completo, con il mining in un Web Worker e la rete simulata tramite <code>BroadcastChannel</code> tra schede della stessa origine. L'interfaccia è in inglese.</p>
+        <div class="launch">
+          <a href="app/index.html" target="_blank" rel="noopener"><b>Node</b><span>Un nodo della rete: catena, mempool, fork, log eventi. Aprilo in più schede per simulare più nodi in competizione.</span></a>
+          <a href="app/experiments.html" target="_blank" rel="noopener"><b>Mining experiments</b><span>Runner degli esperimenti della Parte 1: tentativi e tempi al variare della difficoltà, esportazione in CSV.</span></a>
+          <a href="app/tamper.html" target="_blank" rel="noopener"><b>Tampering</b><span>Demo della Parte 3: si modifica un blocco già accettato e si vede la catena rompersi.</span></a>
+          <a href="app/animation.html" target="_blank" rel="noopener"><b>Animation</b><span>Animazione per l'esposizione: dal blocco al mining, alla rete, alla manomissione.</span></a>
+        </div>
+
+        <h2 id="parti">Le tre parti</h2>
+        <table>
+          <thead><tr><th>Parte</th><th>Domanda</th><th>Modello</th></tr></thead>
+          <tbody>
+            <tr><td>1 · Hash e proof of work</td><td>Quanto costa minare un blocco?</td><td>Geometrica di parametro $2^{-d}$, regressione di $\log_2$ della media su $d$, test di Welch tra hash nativo e JS</td></tr>
+            <tr><td>2 · Rete e consenso</td><td>Cosa succede quando più nodi competono?</td><td>Minimo di esponenziali, processo di Poisson, frequenza dei fork</td></tr>
+            <tr><td>3 · Sicurezza e attacco</td><td>Quanto è probabile riscrivere la storia?</td><td>Rovina del giocatore, Nakamoto, modello esatto e Monte Carlo con intervalli di Wilson</td></tr>
+          </tbody>
+        </table>
+
+        <h2 id="dati">Dati</h2>
+        <div class="kpi">
+          <div><strong>8.600</strong><small>prove di mining<br>mining.csv</small></div>
+          <div><strong>5.408</strong><small>blocchi in 13 run<br>blocks.csv</small></div>
+          <div><strong>13,2 M</strong><small>attacchi simulati<br>attack.csv</small></div>
+          <div><strong>42</strong><small>test automatici<br>node --test</small></div>
+        </div>
+
+        <h2 id="risultati">Risultati</h2>
+        <ul>
+          <li><b>Costo del mining.</b> I tentativi seguono la geometrica di parametro $2^{-d}$ e il costo medio raddoppia per ogni bit di difficoltà: pendenza 0,996 (hash JS) e 1,004 (hash nativo), entrambe compatibili con 1.</li>
+          <li><b>Implementazioni.</b> L'hash nativo non è più veloce di quello JS (circa 8–9 μs per hash; Welch $p = 0{,}238$): il vantaggio teorico è assorbito dal costo per chiamata dell'API asincrona.</li>
+          <li><b>Rete.</b> Con $k$ schede il tempo di blocco scende quasi come $1/k$ (pendenza $-0{,}886$, IC 95% $[-0{,}924;\,-0{,}849]$, per tempo morto e CPU condivisa). Gli arrivi sono di Poisson; i fork sono rari (4 su 2.587 altezze con $k \ge 4$).</li>
+          <li><b>Sicurezza.</b> La probabilità di riscrittura decresce esponenzialmente nelle conferme $z$ solo se $q &lt; 1/2$. Per un rischio sotto lo 0,1% servono 5–6 conferme con $q = 0{,}1$; con $q \ge 0{,}25$ dieci non bastano.</li>
+          <li><b>Limiti.</b> Rete ideale, CPU condivisa, difficoltà fissa, nessuna firma: i numeri non si trasferiscono a una rete reale.</li>
+        </ul>
+      </article>
+
+      <aside class="toc">
+        <p>indice</p>
+        <ol>
+          <li><a href="#prototipo">Prototipo</a></li>
+          <li><a href="#parti">Le tre parti</a></li>
+          <li><a href="#dati">Dati</a></li>
+          <li><a href="#risultati">Risultati</a></li>
+        </ol>
+      </aside>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="wrap">
+      <span>© <span id="year"></span> Giuseppe Di Biase · Matricola 2334106</span>
+      <span>hosted on GitHub Pages</span>
+    </div>
+  </footer>
+</body>
+</html>

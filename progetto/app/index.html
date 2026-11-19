@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Ledger node</title>
+    <style>
+      /* Stili specifici della pagina del nodo; quelli comuni sono in src/style.css. */
+      .node-mark { display: inline-block; width: 0.8em; height: 0.8em; background: var(--node-color); margin-right: 0.35em; vertical-align: 0.02em; }
+      .page-title code { color: var(--node-color); font-size: 0.9em; }
+      .controls { display: flex; flex-direction: column; align-items: flex-end; gap: 0.5rem; }
+      .controls .meta { color: var(--muted); font-style: italic; }
+      #mine-btn { font-size: 1.2rem; padding: 0.7rem 1.8rem; }
+      .figures { margin-bottom: 1.6rem; background: var(--paper-2); }
+      #tip .hash { font-size: 0.85rem; }
+
+      /* libro mastro della catena */
+      #chain-table td.h { font-family: var(--mono); font-weight: 600; font-size: 1.05rem; white-space: nowrap; }
+      #chain-table .hash { white-space: nowrap; word-break: normal; }
+      #chain-table td:nth-child(4) { white-space: nowrap; }
+      #chain-table .who { display: inline-flex; align-items: center; gap: 0.4rem; font-family: var(--mono); }
+      #chain-table .who i { width: 0.75rem; height: 0.75rem; background: var(--miner); display: inline-block; }
+      #chain-table tr.mine td:first-child { box-shadow: inset 4px 0 0 var(--node-color); }
+      #chain-table tr.orphan td { background: var(--ochre-bg); color: var(--ochre); font-style: italic; border-bottom-style: dashed; }
+      #chain-table tr.orphan td.h { font-weight: 400; }
+      #chain-table tr.orphan td.h::before { content: '└ '; }
+      #chain-table tr.orphan .hash { text-decoration: line-through; text-decoration-color: var(--ochre); }
+      #chain-table tr.new td { animation: ink 1.6s ease; }
+      @keyframes ink { from { background: var(--green-bg); } to { background: transparent; } }
+      .legend { display: flex; gap: 1.4rem; flex-wrap: wrap; font-size: 0.92rem; color: var(--muted); font-style: italic; margin-top: 0.7rem; }
+      .legend b { font-style: normal; }
+
+      /* transazioni */
+      #tx-form { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(0, 0.8fr) auto; gap: 0.7rem; align-items: end; }
+      #tx-form input { width: 100%; }
+      .mempool-head { display: flex; align-items: baseline; gap: 0.6rem; margin: 1.1rem 0 0.3rem; }
+      .mempool-head .big { font-family: var(--mono); font-weight: 600; font-size: 1.6rem; }
+      #mempool { list-style: none; margin: 0; padding: 0; max-height: 9.5rem; overflow: auto; }
+      #mempool li { font-family: var(--mono); padding: 0.25rem 0.2rem; border-bottom: 1px solid var(--rule-soft); }
+
+      /* giornale degli eventi */
+      #log { max-height: 23rem; overflow: auto; }
+      #log div { display: grid; grid-template-columns: 1.4rem 4.6rem minmax(0, 1fr); gap: 0.4rem; padding: 0.28rem 0.2rem; border-bottom: 1px solid var(--rule-soft); font-size: 0.95rem; }
+      #log .s { font-weight: 700; text-align: center; }
+      #log .t { font-family: var(--mono); color: var(--muted); font-size: 0.82rem; padding-top: 0.12rem; }
+      #log .ok .s { color: var(--green); }
+      #log .warn { color: var(--ochre); background: var(--ochre-bg); }
+      #log .bad { color: var(--red); background: var(--red-bg); }
+      details.sheet summary { font-variant: small-caps; font-weight: 700; font-size: 1.15rem; }
+      details.sheet[open] summary { margin-bottom: 0.7rem; }
+      details.sheet p { color: var(--muted); font-style: italic; margin-top: 0; }
+    </style>
+    <script type="module" crossorigin src="./assets/index-DhJCahgq.js"></script>
+    <link rel="modulepreload" crossorigin href="./assets/style-CBx2tgDW.js">
+    <link rel="modulepreload" crossorigin href="./assets/chain-DWb98O75.js">
+    <link rel="stylesheet" crossorigin href="./assets/style-DrFQzqSU.css">
+  </head>
+  <body>
+    <!-- UI del nodo (Parte 2). Aprire più tab di questa pagina con `npm run dev`.
+         Tenere le tab visibili (finestre affiancate): il browser rallenta le tab in background. -->
+    <header class="topbar">
+      <div class="brand">Teaching Ledger<small>a distributed ledger in the browser</small></div>
+      <nav>
+        <a href="./index.html" aria-current="page">Node</a>
+        <a href="./experiments.html">Mining experiments</a>
+        <a href="./tamper.html">Tampering</a>
+        <a href="./animation.html" target="_blank" rel="noopener" title="opens in a new window, to place next to the nodes" style="margin-left: 2.5rem; font-style: italic">Animation ↗</a>
+      </nav>
+    </header>
+
+    <main>
+      <div class="page-head">
+        <div class="grow">
+          <div class="kicker">Part 2 · network and consensus</div>
+          <h1 class="page-title"><span class="node-mark"></span>Node <code id="node-id"></code></h1>
+          <p class="page-sub">Each tab is a node: it mines blocks, announces them to the others and keeps the longest valid chain.</p>
+        </div>
+        <div class="controls">
+          <span class="stamp off" id="mining-pill"><span class="dot"></span>mining <span id="mining-state"></span></span>
+          <span class="meta">difficulty <span id="difficulty"></span></span>
+          <button id="mine-btn" class="go" type="button"></button>
+        </div>
+      </div>
+
+      <section class="figures" aria-label="key figures">
+        <div class="figure hero"><div class="label">Chain height</div><div class="value" id="height"></div><div class="detail">tip <span id="tip"></span></div></div>
+        <div class="figure"><div class="label">Mined by this tab</div><div class="value" id="mined-here"></div><div class="detail" id="mined-share"></div></div>
+        <div class="figure" id="kpi-forks"><div class="label">Forks observed</div><div class="value" id="forks"></div><div class="detail">heights with two valid blocks</div></div>
+        <div class="figure" id="kpi-stale"><div class="label">Orphan blocks</div><div class="value" id="stale"></div><div class="detail">work discarded by consensus</div></div>
+        <div class="figure" id="kpi-reorgs"><div class="label">Reorganizations</div><div class="value" id="reorgs"></div><div class="detail">chain replaced by a longer one</div></div>
+      </section>
+
+      <div class="grid grid-main">
+        <section class="sheet">
+          <h2 class="sheet-title">Chain ledger <span class="note">last 15 blocks, newest first</span></h2>
+          <table id="chain-table">
+            <thead><tr><th>height</th><th>hash</th><th>previous</th><th>mined by</th><th class="r">tx</th><th class="r">nonce</th></tr></thead>
+            <tbody id="chain"></tbody>
+          </table>
+          <div class="legend">
+            <span><b class="hash"><span class="z">000</span></b> leading zeros = proof of work</span>
+            <span><b style="color:var(--node-color)">▌</b> block mined by this tab</span>
+            <span><b style="color:var(--ochre)">└ orphan</b> valid block lost in a fork</span>
+          </div>
+        </section>
+
+        <div class="stack">
+          <section class="sheet">
+            <h2 class="sheet-title">New transaction</h2>
+            <form id="tx-form">
+              <label class="field">from <input id="tx-from" value="alice" required /></label>
+              <label class="field">to <input id="tx-to" value="bob" required /></label>
+              <label class="field">amount <input id="tx-amount" type="number" step="any" value="5" required /></label>
+              <button type="submit" class="primary">Send</button>
+            </form>
+            <div class="mempool-head"><span class="big" id="mempool-size"></span><span class="muted it">transactions in the mempool, waiting for a block</span></div>
+            <ul id="mempool"></ul>
+          </section>
+
+          <section class="sheet">
+            <h2 class="sheet-title">Event log</h2>
+            <div id="log"></div>
+          </section>
+
+          <details class="sheet">
+            <summary>Experiment with k tabs</summary>
+            <p>Open k tabs with the same difficulty, start mining in all of them, wait, then export
+              from a single tab. Copy the file to <code>data/blocks.csv</code>.</p>
+            <div class="row">
+              <label class="field">run_id <input id="run-id" /></label>
+              <label class="field">k (number of tabs) <input id="k-tabs" type="number" min="1" value="1" style="width:6rem" /></label>
+              <button id="export-btn" type="button">Export blocks.csv</button>
+            </div>
+            <p style="margin-top:0.7rem"><span id="rows"></span> blocks recorded</p>
+          </details>
+        </div>
+      </div>
+    </main>
+
+  </body>
+</html>
